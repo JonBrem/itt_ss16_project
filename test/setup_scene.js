@@ -2,6 +2,8 @@ var canvas;
 var engine;
 var scene;
 
+var meshes = {};
+
 var createScene = function() {
     // create a basic BJS Scene object
     var scene = new BABYLON.Scene(engine);
@@ -41,13 +43,20 @@ jQuery(document).ready(function($) {
 });
 
 
-function add_mesh(data) {
+function addMesh(data, id) {
     try {
-        BABYLON.SceneLoader.ImportMesh("", "", "data:" + data, scene, function (meshes) {
-
+        BABYLON.SceneLoader.ImportMesh("", "", "data:" + data, scene, function (newMeshes) {
+            newMeshes[0].id = id;
+            meshes[id] = newMeshes[0];
+            python_callback.js_mesh_loaded(id);
         });
     } catch (e) {
-        alert(e);
+        python_callback.js_mesh_load_error(id, e);
     }
+}
 
+function setMeshPosition(id, x, y, z) {
+    if (id in meshes) {
+        meshes[id].setAbsolutePosition(new BABYLON.Vector3(x, y, z));
+    }
 }

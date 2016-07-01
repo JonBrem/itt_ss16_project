@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-
+from PyQt5 import QtCore
 from PyQt5.QtCore import QFile, QIODevice, Qt, QTextStream, QUrl
 from PyQt5.QtWidgets import (QAction, QApplication, QLineEdit, QMainWindow,
         QSizePolicy, QStyle, QTextEdit)
@@ -19,6 +19,8 @@ class MainWindow(QMainWindow):
         QNetworkProxyFactory.setUseSystemConfiguration(True)
 
         self.view = QWebView(self)
+
+        self.view.page().mainFrame().addToJavaScriptWindowObject("python_callback", self);
 
         self.view.load(url)
 
@@ -66,8 +68,16 @@ class MainWindow(QMainWindow):
         mesh_file.close()
         data += "'')"
 
-        self.view.page().mainFrame().evaluateJavaScript("add_mesh(" + data + ");");
+        self.view.page().mainFrame().evaluateJavaScript("addMesh(" + data + ", 'my_cube');");
 
+    @QtCore.pyqtSlot(str)
+    def js_mesh_loaded(self, mesh_name):
+        print(mesh_name)
+        self.view.page().mainFrame().evaluateJavaScript("setMeshPosition('my_cube', 1, 1, 0);");
+
+    @QtCore.pyqtSlot(str, str)
+    def js_mesh_load_error(self, mesh_name, error):
+        print(mesh_name, error)
 
 if __name__ == '__main__':
 
