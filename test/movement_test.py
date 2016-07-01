@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 from PyQt5 import uic, QtGui, QtCore, Qt
 from PyQt5.QtCore import QFile, QIODevice, Qt, QTextStream, QUrl
 from PyQt5.QtWidgets import (QAction, QApplication, QLineEdit, QMainWindow,
@@ -39,8 +41,6 @@ class Window(QMainWindow):
         self.scale_btn.clicked.connect(self.scale)
 
         self.list_widget = self.win.list_widget
-
-
 
         self.win.show()
 
@@ -150,7 +150,7 @@ class Window(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    url = QUrl('file:///home/juergen/Desktop/ITT/ITT_Project/itt_ss16_project/test/index.html')
+    url = QUrl('file:///' + os.path.dirname(os.path.realpath(__file__)) + '/index.html')
 
     win = Window(url)
 
