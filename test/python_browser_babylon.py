@@ -20,7 +20,7 @@ class MainWindow(QMainWindow):
 
         self.view = QWebView(self)
 
-        self.view.page().mainFrame().addToJavaScriptWindowObject("python_callback", self);
+        self.view.page().mainFrame().addToJavaScriptWindowObject("python_callback", self)
 
         self.view.load(url)
 
@@ -31,12 +31,20 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.view)
 
     def viewSource(self):
+        """
+        never called?
+        :return:
+        """
         accessManager = self.view.page().networkAccessManager()
         request = QNetworkRequest(self.view.url())
         reply = accessManager.get(request)
         reply.finished.connect(self.slotSourceDownloaded)
 
     def slotSourceDownloaded(self):
+        """
+        never called?
+        :return:
+        """
         reply = self.sender()
         self.textEdit = QTextEdit()
         self.textEdit.setAttribute(Qt.WA_DeleteOnClose)
@@ -84,7 +92,7 @@ if __name__ == '__main__':
     import sys
 
     app = QApplication(sys.argv)
-    url = QUrl('file:///home/jon/Desktop/itt/itt_ss16_project/test/index.html')
+    url = QUrl('file:///home/juergen/Desktop/ITT/ITT_Project/itt_ss16_project/test/index.html')
 
     browser = MainWindow(url)
     browser.show()

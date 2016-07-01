@@ -60,3 +60,76 @@ function setMeshPosition(id, x, y, z) {
         meshes[id].setAbsolutePosition(new BABYLON.Vector3(x, y, z));
     }
 }
+
+function translateMeshByID(id, x, y, z) {
+    if(id in meshes)
+        x1 = '';
+        y1 = '';
+        z1 = '';
+
+        if(x != 0)
+            x1 = 'x';
+
+        if(y != 0)
+            y1 = 'y';
+
+        if(z != 0)
+            z1 = 'z';
+
+        meshes[id].position.x += x;
+        meshes[id].position.y += y;
+        meshes[id].position.z += z;
+
+        python_callback.on_js_object_manipulation_performed(id, 'translated',
+                                                            x1, y1, z1);
+}
+
+function rotateMeshByID(id, x, y, z) {
+    if(id in meshes) {
+        x1 = '';
+        y1 = '';
+        z1 = '';
+
+        if(x != 0)
+            x1 = 'x';
+
+        if(y != 0)
+            y1 = 'y';
+
+        if(z != 0)
+            z1 = 'z';
+
+        meshes[id].rotation.x += x;
+        meshes[id].rotation.y += y;
+        meshes[id].rotation.z += z;
+
+        python_callback.on_js_object_manipulation_performed(id, 'rotated',
+                                                            x1, y1, z1);
+    }
+}
+
+function scaleMeshByID(id, factorX, factorY, factorZ) {
+    if(id in meshes) {
+        if(factorX == 1 && factorY == 1 && factorZ == 1) return;
+
+        x1 = '';
+        y1 = '';
+        z1 = '';
+
+        if(factorX != 1)
+            x1 = 'x';
+
+        if(factorY != 1)
+            y1 = 'y';
+
+        if(factorZ != 1)
+            z1 = 'z';
+
+        meshes[id].scaling.x *= factorX;
+        meshes[id].scaling.y *= factorY;
+        meshes[id].scaling.z *= factorZ;
+
+        python_callback.on_js_object_manipulation_performed(id, 'scaled',
+                                                            x1, y1, z1);
+    }
+}
