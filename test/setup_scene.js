@@ -39,6 +39,8 @@ jQuery(document).ready(function($) {
     window.addEventListener('resize', function() {
         engine.resize();
     });
+
+    window.addEventListener("click", onClick);
     
 });
 
@@ -132,4 +134,40 @@ function scaleMeshByID(id, factorX, factorY, factorZ) {
         python_callback.on_js_object_manipulation_performed(id, 'scaled',
                                                             x1, y1, z1);
     }
+}
+
+// https://gamedevacademy.org/grabbing-3d-objects-with-the-mouse-babylonjs-series-part-11/
+function onClick(evt) {
+    var pickResult = scene.pick(evt.clientX, evt.clientY);
+    if (pickResult.hit) {
+        python_callback.on_object_clicked(pickResult.pickedMesh.id);
+    } else {
+        python_callback.on_object_clicked(null);
+    }
+}
+
+function highlight(obj_id) {
+    if (obj_id in meshes) {
+        // http://www.babylonjs-playground.com/#E51MJ#8
+        meshes[obj_id].outlineWidth = 0.05;
+        meshes[obj_id].renderOutline = true;
+    }
+}
+
+function remove_highlight(obj_id) {
+    if (obj_id in meshes) {
+        // http://www.babylonjs-playground.com/#E51MJ#8
+        meshes[obj_id].outlineWidth = 0.0;
+        meshes[obj_id].renderOutline = false;
+    }
+}
+
+// @TODO do we need those? click/mouse press might be enough for selecting
+// maybe we'll need it if we want to drag things on screen...
+function onMove(evt) {
+
+}
+
+function onRelease(evt) {
+
 }

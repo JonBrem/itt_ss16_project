@@ -29,39 +29,52 @@ class Window(QMainWindow):
         self.wv.load(url)
 
         self.wv.titleChanged.connect(self.adjustTitle)
-        self.wv.loadProgress.connect(self.setProgress)
         self.wv.loadFinished.connect(self.finishLoading)
 
         self.translate_btn = self.win.btn_translate
         self.rotate_btn = self.win.btn_rotate
         self.scale_btn = self.win.btn_scale
 
+        self.list_widget = self.win.list_widget
+
+        self.setup_ui()
+
+        self.meshes = []
+        self.selected_mesh = None
+
+        self.win.show()
+
+    def setup_ui(self):
         self.translate_btn.clicked.connect(self.translate)
         self.rotate_btn.clicked.connect(self.rotate)
         self.scale_btn.clicked.connect(self.scale)
 
-        self.list_widget = self.win.list_widget
-
-        self.win.show()
+        self.list_widget.selectionModel().selectionChanged.connect(
+            self.mesh_selection_changed)
 
     def translate(self):
         print('translate')
 
-        self.wv.page().mainFrame().evaluateJavaScript(
-            "translateMeshByID('my_cube', 1, 0, 0);")
+        if self.selected_mesh is not None:
+            self.wv.page().mainFrame().evaluateJavaScript(
+                "translateMeshByID('" + self.selected_mesh + "', 1, 0, 0);")
 
     def rotate(self):
         print('rotate')
 
         angle = str((np.pi / 8))
-        self.wv.page().mainFrame().evaluateJavaScript(
-            "rotateMeshByID('my_cube', " + angle + ", 0, 0);")
+
+        if self.selected_mesh is not None:
+            self.wv.page().mainFrame().evaluateJavaScript(
+                "rotateMeshByID('" + self.selected_mesh + "', " + angle +
+                ", 0, 0);")
 
     def scale(self):
         print('scale')
 
-        self.wv.page().mainFrame().evaluateJavaScript(
-            "scaleMeshByID('my_cube', 2, 1, 1);")
+        if self.selected_mesh is not None:
+            self.wv.page().mainFrame().evaluateJavaScript(
+                "scaleMeshByID('" + self.selected_mesh + "', 2, 1, 1);")
 
     def viewSource(self):
         """
@@ -93,15 +106,11 @@ class Window(QMainWindow):
         else:
             self.setWindowTitle(self.wv.title())
 
-    def setProgress(self, p):
-        self.progress = p
-        self.adjustTitle()
-
     def finishLoading(self):
         self.progress = 100
         self.adjustTitle()
 
-        mesh_file = open('assets/box.babylon');
+        mesh_file = open('assets/box.babylon')
 
         data = '('
         for line in mesh_file:
@@ -109,13 +118,61 @@ class Window(QMainWindow):
         mesh_file.close()
         data += "'')"
 
-        self.wv.page().mainFrame().evaluateJavaScript("addMesh(" + data + ", 'my_cube');");
+        self.wv.page().mainFrame().evaluateJavaScript(
+            "addMesh(" + data + ", 'my_cube');")
+        self.wv.page().mainFrame().evaluateJavaScript(
+            "addMesh(" + data + ", 'my_other_cube');")
+
+    def mesh_selection_changed(self, b=0):
+        selected = self.list_widget.selectedIndexes()
+        if len(selected) > 0:
+            self.select_mesh(self.meshes[selected[0].row()], False)
+        else:
+            self.de_select_meshes(False)
+
+    def select_mesh(self, obj_id, update_list=True):
+        was_selected = self.selected_mesh == obj_id
+
+        self.selected_mesh = obj_id
+        for mesh in self.meshes:
+            if mesh == obj_id:
+                continue
+            self.wv.page().mainFrame().evaluateJavaScript(
+                "remove_highlight('" + mesh + "');")
+
+        if update_list and not was_selected:
+            if obj_id in self.meshes:
+                # remove any selection:
+                selection_model = self.list_widget.selectionModel()
+                selection_model.clear()
+                # add new selection:
+                selected_index = self.meshes.index(obj_id)
+                new_selection = self.list_widget.indexFromItem(
+                    self.list_widget.item(selected_index))
+                selection_model.select(new_selection,
+                                       QtCore.QItemSelectionModel.Select)
+
+        self.wv.page().mainFrame().evaluateJavaScript(
+            "highlight('" + obj_id + "');")
+
+    def de_select_meshes(self, from_js=True):
+        # @todo: do we ever need that param??
+        if from_js:
+            selection_model = self.list_widget.selectionModel()
+            selection_model.clear()
+        self.selected_mesh = None
+
+        for mesh in self.meshes:
+            self.wv.page().mainFrame().evaluateJavaScript(
+                "remove_highlight('" + mesh + "');")
 
     @QtCore.pyqtSlot(str)
     def js_mesh_loaded(self, mesh_name):
         print(mesh_name)
         self.list_widget.addItem(mesh_name)  # maybe map binding to object ?
-        self.wv.page().mainFrame().evaluateJavaScript("setMeshPosition('my_cube', 1, 1, 0);");
+        self.meshes.append(mesh_name)
+        self.wv.page().mainFrame().evaluateJavaScript(
+            "setMeshPosition('my_cube', 1, 1, 0);")
 
     @QtCore.pyqtSlot(str, str)
     def js_mesh_load_error(self, mesh_name, error):
@@ -135,6 +192,13 @@ class Window(QMainWindow):
             s += z
 
         print(action + ' mesh: ' + mesh_id + ' in: ' + s)
+
+    @QtCore.pyqtSlot(str)
+    def on_object_clicked(self, obj_id):
+        if obj_id in self.meshes:
+            self.select_mesh(obj_id)
+        elif len(obj_id) == 0:  # == None; None does not work from JS
+            self.de_select_meshes()
 
     @QtCore.pyqtSlot(str)
     def on_js_console_log(self, log):
