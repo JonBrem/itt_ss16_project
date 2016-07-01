@@ -58,10 +58,6 @@ class MainWindow(QMainWindow):
         self.progress = 100
         self.adjustTitle()
 
-        self.view.page().mainFrame().evaluateJavaScript(open('jquery-2.2.4.min.js').read())
-        self.view.page().mainFrame().evaluateJavaScript(open('babylon.2.4.max.js').read())
-        self.view.page().mainFrame().evaluateJavaScript(open('babylon.objFileLoader.js').read())
-        self.view.page().mainFrame().evaluateJavaScript(open('setup_scene.js').read())
         mesh_file = open('assets/box.babylon');
 
         data = '('
@@ -69,7 +65,6 @@ class MainWindow(QMainWindow):
             data += "'" + line[:-1] + "' + \n"
         mesh_file.close()
         data += "'')"
-        print(data)
 
         self.view.page().mainFrame().evaluateJavaScript("add_mesh(" + data + ");");
 
@@ -79,7 +74,7 @@ if __name__ == '__main__':
     import sys
 
     app = QApplication(sys.argv)
-    url = QUrl('file:///home/jon/Desktop/pyqt3d/index.html')
+    url = QUrl('file:///home/jon/Desktop/itt/itt_ss16_project/test/index.html')
 
     browser = MainWindow(url)
     browser.show()
