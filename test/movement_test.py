@@ -20,7 +20,7 @@ class Window(QMainWindow):
         self.win = uic.loadUi('room_design.ui')
         self.wv = QWebView(self.win)
 
-        self.wv.setGeometry(10, 10, 1280, 800)
+        self.wv.setGeometry(10, 10, 1000, 650)
         self.wv.page().mainFrame().addToJavaScriptWindowObject(
             "python_callback", self)
 
@@ -37,6 +37,10 @@ class Window(QMainWindow):
         self.translate_btn.clicked.connect(self.translate)
         self.rotate_btn.clicked.connect(self.rotate)
         self.scale_btn.clicked.connect(self.scale)
+
+        self.list_widget = self.win.list_widget
+
+
 
         self.win.show()
 
@@ -110,6 +114,7 @@ class Window(QMainWindow):
     @QtCore.pyqtSlot(str)
     def js_mesh_loaded(self, mesh_name):
         print(mesh_name)
+        self.list_widget.addItem(mesh_name)  # maybe map binding to object ?
         self.wv.page().mainFrame().evaluateJavaScript("setMeshPosition('my_cube', 1, 1, 0);");
 
     @QtCore.pyqtSlot(str, str)
