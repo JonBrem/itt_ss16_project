@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 from PyQt5 import QtCore
 from PyQt5.QtCore import QFile, QIODevice, Qt, QTextStream, QUrl
 from PyQt5.QtWidgets import (QAction, QApplication, QLineEdit, QMainWindow,
@@ -92,7 +94,7 @@ if __name__ == '__main__':
     import sys
 
     app = QApplication(sys.argv)
-    url = QUrl('file:///home/juergen/Desktop/ITT/ITT_Project/itt_ss16_project/test/index.html')
+    url = QUrl('file:///' + os.path.dirname(os.path.realpath(__file__)) + '/index.html')
 
     browser = MainWindow(url)
     browser.show()
