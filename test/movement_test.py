@@ -2,7 +2,7 @@
 
 import os
 
-from PyQt5 import uic, QtGui, QtCore, Qt
+from PyQt5 import uic, QtGui, QtCore, Qt, QtWidgets
 from PyQt5.QtCore import QFile, QIODevice, Qt, QTextStream, QUrl
 from PyQt5.QtWidgets import (QAction, QApplication, QLineEdit, QMainWindow,
         QSizePolicy, QStyle, QTextEdit)
@@ -11,6 +11,7 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
 import numpy as np
 
+import js_interface_module as js
 
 class Window(QMainWindow):
     def __init__(self, url):
@@ -23,8 +24,7 @@ class Window(QMainWindow):
         self.wv = QWebView(self.win)
 
         self.wv.setGeometry(10, 10, 1000, 650)
-        self.wv.page().mainFrame().addToJavaScriptWindowObject(
-            "python_callback", self)
+        js.SetupScene.apply_callback(self.wv, 'python_callback', self)
 
         self.wv.load(url)
 
@@ -37,12 +37,46 @@ class Window(QMainWindow):
 
         self.list_widget = self.win.list_widget
 
+        self.tree_widget = self.win.tree_widget
+
+        item_chair = self.add_root_element_to_tree('Chairs')
+        item_table = self.add_root_element_to_tree('Table')
+        item_couch = self.add_root_element_to_tree('Couch')
+
+        self.add_child_to_tree_element(item_chair, 'Chair1')
+        self.add_child_to_tree_element(item_chair, 'Chair2')
+        self.add_child_to_tree_element(item_table, 'Table1')
+        self.add_child_to_tree_element(item_couch, 'Comfy Couch')
+        self.add_child_to_tree_element(item_couch, 'Old Couch')
+        self.add_child_to_tree_element(item_couch, "Deadpool's Couch. YUCK!")
+
+        self.tree_widget.doubleClicked.connect(
+            self.perform_action_of_child_element)
+
         self.setup_ui()
 
         self.meshes = []
         self.selected_mesh = None
 
         self.win.show()
+
+    def perform_action_of_child_element(self):
+        item = self.tree_widget.currentItem()
+        if item.childCount() == 0:
+            print(item.text(0) + ' selected')
+
+    def add_root_element_to_tree(self, name):
+        item = QtWidgets.QTreeWidgetItem(self.tree_widget)
+        item.setText(0, name)
+
+        return item
+
+    def add_child_to_tree_element(self, parent, name):
+        item = QtWidgets.QTreeWidgetItem()
+        item.setText(0, name)
+        parent.addChild(item)
+
+        # return item
 
     def setup_ui(self):
         self.translate_btn.clicked.connect(self.translate)
@@ -53,28 +87,24 @@ class Window(QMainWindow):
             self.mesh_selection_changed)
 
     def translate(self):
-        print('translate')
-
         if self.selected_mesh is not None:
-            self.wv.page().mainFrame().evaluateJavaScript(
-                "translateMeshByID('" + self.selected_mesh + "', 1, 0, 0);")
+            print('translate')
+            js.SetupScene.translate_mesh_by_id(self.wv, self.selected_mesh,
+                                               1, 0, 0)
 
     def rotate(self):
-        print('rotate')
-
-        angle = str((np.pi / 8))
-
         if self.selected_mesh is not None:
-            self.wv.page().mainFrame().evaluateJavaScript(
-                "rotateMeshByID('" + self.selected_mesh + "', " + angle +
-                ", 0, 0);")
+            print('rotate')
+
+            angle = str((np.pi / 8))
+            js.SetupScene.rotate_mesh_by_id(self.wv, self.selected_mesh,
+                                            angle, 0, 0)
 
     def scale(self):
-        print('scale')
-
         if self.selected_mesh is not None:
-            self.wv.page().mainFrame().evaluateJavaScript(
-                "scaleMeshByID('" + self.selected_mesh + "', 2, 1, 1);")
+            print('scale')
+
+            js.SetupScene.scale_mesh_by_id(self.wv, self.selected_mesh, 2, 1, 1)
 
     def viewSource(self):
         """
@@ -118,10 +148,8 @@ class Window(QMainWindow):
         mesh_file.close()
         data += "'')"
 
-        self.wv.page().mainFrame().evaluateJavaScript(
-            "addMesh(" + data + ", 'my_cube');")
-        self.wv.page().mainFrame().evaluateJavaScript(
-            "addMesh(" + data + ", 'my_other_cube');")
+        js.SetupScene.add_mesh(self.wv, data, 'my_cube')
+        js.SetupScene.add_mesh(self.wv, data, 'my_other_cube')
 
     def mesh_selection_changed(self, b=0):
         selected = self.list_widget.selectedIndexes()
@@ -137,8 +165,8 @@ class Window(QMainWindow):
         for mesh in self.meshes:
             if mesh == obj_id:
                 continue
-            self.wv.page().mainFrame().evaluateJavaScript(
-                "remove_highlight('" + mesh + "');")
+
+            js.SetupScene.remove_highlight_from_mesh(self.wv, mesh)
 
         if update_list and not was_selected:
             if obj_id in self.meshes:
@@ -152,8 +180,7 @@ class Window(QMainWindow):
                 selection_model.select(new_selection,
                                        QtCore.QItemSelectionModel.Select)
 
-        self.wv.page().mainFrame().evaluateJavaScript(
-            "highlight('" + obj_id + "');")
+        js.SetupScene.highlight_mesh(self.wv, obj_id)
 
     def de_select_meshes(self, from_js=True):
         # @todo: do we ever need that param??
@@ -163,16 +190,15 @@ class Window(QMainWindow):
         self.selected_mesh = None
 
         for mesh in self.meshes:
-            self.wv.page().mainFrame().evaluateJavaScript(
-                "remove_highlight('" + mesh + "');")
+            js.SetupScene.remove_highlight_from_mesh(self.wv, mesh)
 
     @QtCore.pyqtSlot(str)
     def js_mesh_loaded(self, mesh_name):
         print(mesh_name)
         self.list_widget.addItem(mesh_name)  # maybe map binding to object ?
         self.meshes.append(mesh_name)
-        self.wv.page().mainFrame().evaluateJavaScript(
-            "setMeshPosition('my_cube', 1, 1, 0);")
+        if mesh_name == 'my_cube':
+            js.SetupScene.set_mesh_position(self.wv, mesh_name, 1, 1, 0)
 
     @QtCore.pyqtSlot(str, str)
     def js_mesh_load_error(self, mesh_name, error):

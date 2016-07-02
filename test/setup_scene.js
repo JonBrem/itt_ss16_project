@@ -154,7 +154,7 @@ function highlight(obj_id) {
     }
 }
 
-function remove_highlight(obj_id) {
+function removeHighlight(obj_id) {
     if (obj_id in meshes) {
         // http://www.babylonjs-playground.com/#E51MJ#8
         meshes[obj_id].outlineWidth = 0.0;

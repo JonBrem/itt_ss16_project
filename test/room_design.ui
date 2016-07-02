@@ -63,6 +63,21 @@
      </rect>
     </property>
    </widget>
+   <widget class="QTreeWidget" name="tree_widget">
+    <property name="geometry">
+     <rect>
+      <x>1040</x>
+      <y>220</y>
+      <width>256</width>
+      <height>411</height>
+     </rect>
+    </property>
+    <column>
+     <property name="text">
+      <string notr="true">1</string>
+     </property>
+    </column>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
