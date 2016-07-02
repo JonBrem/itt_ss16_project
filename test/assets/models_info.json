@@ -1,0 +1,87 @@
+{
+    "categories": [
+        {
+            "name": "Chairs",
+            "img": "assets/img/chair-4-128.png",
+            "models": [
+                {
+                    "name": "Simple Chair",
+                    "preview": "assets/img/chair-4-128.png",
+                    "file": "assets/models/box.babylon"
+                }
+            ]
+        },
+        {
+            "name": "Tables",
+            "img": "assets/img/table-128.png",
+            "models": [
+                {
+                    "name": "Simple Table",
+                    "preview": "assets/img/table-128.png",
+                    "file": "assets/models/box.babylon"
+                },
+                {
+                    "name": "Old-Timey Table",
+                    "preview": "assets/img/table-128.png",
+                    "file": "assets/models/box.babylon"
+                }
+            ]
+        },
+        {
+            "name": "Shelves",
+            "img": "assets/img/wardrobe-128.png",
+            "models": [
+                {
+                    "name": "Simple Shelf",
+                    "preview": "assets/img/wardrobe-128.png",
+                    "file": "assets/models/box.babylon"
+                }
+            ]
+        },
+        {
+            "name": "Devices",
+            "img": "assets/img/tv-128.png",
+            "models": [
+                {
+                    "name": "TV",
+                    "preview": "assets/img/tv-128.png",
+                    "file": "assets/models/box.babylon"
+                }
+            ]
+        },
+        {
+            "name": "Lights",
+            "img": "assets/img/lamp-128.png",
+            "models": [
+                {
+                    "name": "Lamp",
+                    "preview": "assets/img/lamp-128.png",
+                    "file": "assets/models/box.babylon"
+                }
+            ]
+        },
+        {
+            "name": "Décor",
+            "img": "assets/img/bunch-flowers-128.png",
+            "models": [
+                {
+                    "name": "Flower",
+                    "preview": "assets/img/bunch-flowers-128.png",
+                    "file": "assets/models/box.babylon"
+                }
+            ]
+        },
+        {
+            "name": "Misc.",
+            "img": "assets/img/question-mark-4-128.png",
+            "models": [
+                {
+                    "name": "Dunno",
+                    "preview": "assets/img/question-mark-4-128.png",
+                    "file": "assets/models/box.babylon"
+                }
+            ]
+        }
+
+    ]
+}

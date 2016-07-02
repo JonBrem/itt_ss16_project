@@ -10,9 +10,12 @@ from PyQt5.QtNetwork import QNetworkProxyFactory, QNetworkRequest
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
 import numpy as np
+import json
 
 import js_interface_module as js
 import wiimote_interface_module as wii
+import blend_model_picker as model_table
+
 
 class Window(QMainWindow):
     def __init__(self, url):
@@ -39,22 +42,8 @@ class Window(QMainWindow):
         self.scale_btn = self.win.btn_scale
 
         self.list_widget = self.win.list_widget
-
-        self.tree_widget = self.win.tree_widget
-
-        item_chair = self.add_root_element_to_tree('Chairs')
-        item_table = self.add_root_element_to_tree('Table')
-        item_couch = self.add_root_element_to_tree('Couch')
-
-        self.add_child_to_tree_element(item_chair, 'Chair1')
-        self.add_child_to_tree_element(item_chair, 'Chair2')
-        self.add_child_to_tree_element(item_table, 'Table1')
-        self.add_child_to_tree_element(item_couch, 'Comfy Couch')
-        self.add_child_to_tree_element(item_couch, 'Old Couch')
-        self.add_child_to_tree_element(item_couch, "Deadpool's Couch. YUCK!")
-
-        self.tree_widget.doubleClicked.connect(
-            self.perform_action_of_child_element)
+        self.mesh_select_table = None
+        self.model_table = None
 
         self.setup_ui()
 
@@ -86,19 +75,6 @@ class Window(QMainWindow):
         if item.childCount() == 0:
             print(item.text(0) + ' selected')
 
-    def add_root_element_to_tree(self, name):
-        item = QtWidgets.QTreeWidgetItem(self.tree_widget)
-        item.setText(0, name)
-
-        return item
-
-    def add_child_to_tree_element(self, parent, name):
-        item = QtWidgets.QTreeWidgetItem()
-        item.setText(0, name)
-        parent.addChild(item)
-
-        # return item
-
     def setup_ui(self):
         self.translate_btn.clicked.connect(self.translate)
         self.rotate_btn.clicked.connect(self.rotate)
@@ -106,6 +82,37 @@ class Window(QMainWindow):
 
         self.list_widget.selectionModel().selectionChanged.connect(
             self.mesh_selection_changed)
+
+        self.mesh_select_table = model_table.CategoryPickerTable(self,
+                                                                 self.win)
+        self.mesh_select_table.setGeometry(10 + 500,
+                                           610 + model_table.TABLE_ITEM_SIZE,
+                                           0, model_table.TABLE_ITEM_SIZE)
+
+        self.read_mesh_data("assets/models_info.json")
+
+    def read_mesh_data(self, file_path):
+        with open(file_path, 'r') as mesh_data_file:
+            mesh_data = json.loads(mesh_data_file.read())
+            for category in mesh_data['categories']:
+                self.mesh_select_table.add_item(category)
+
+    def request_add_mesh(self, mesh_file, name):
+        original_name = name
+        index = 1
+        while name in self.meshes:
+            name = original_name + str(index)
+            index += 1
+
+        mesh_file = open(mesh_file)
+
+        data = '('
+        for line in mesh_file:
+            data += "'" + line[:-1] + "' + \n"
+        mesh_file.close()
+        data += "'')"
+
+        js.SetupScene.add_mesh(data, name)
 
     def translate(self):
         if self.selected_mesh is not None:
@@ -161,7 +168,7 @@ class Window(QMainWindow):
         self.progress = 100
         self.adjustTitle()
 
-        mesh_file = open('assets/box.babylon')
+        """mesh_file = open('assets/box.babylon')
 
         data = '('
         for line in mesh_file:
@@ -170,7 +177,7 @@ class Window(QMainWindow):
         data += "'')"
 
         js.SetupScene.add_mesh(data, 'my_cube')
-        js.SetupScene.add_mesh(data, 'my_other_cube')
+        js.SetupScene.add_mesh(data, 'my_other_cube')"""
 
     def mesh_selection_changed(self, b=0):
         selected = self.list_widget.selectedIndexes()
@@ -215,11 +222,10 @@ class Window(QMainWindow):
 
     @QtCore.pyqtSlot(str)
     def js_mesh_loaded(self, mesh_name):
-        print(mesh_name)
+        print("loaded ", mesh_name)
         self.list_widget.addItem(mesh_name)  # maybe map binding to object ?
         self.meshes.append(mesh_name)
-        if mesh_name == 'my_cube':
-            js.SetupScene.set_mesh_position(mesh_name, 1, 1, 0)
+        self.select_mesh(mesh_name)
 
     @QtCore.pyqtSlot(str, str)
     def js_mesh_load_error(self, mesh_name, error):
