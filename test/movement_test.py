@@ -23,8 +23,10 @@ class Window(QMainWindow):
         self.win = uic.loadUi('room_design.ui')
         self.wv = QWebView(self.win)
 
+        js.SetupScene.init(self.wv)
+
         self.wv.setGeometry(10, 10, 1000, 650)
-        js.SetupScene.apply_callback(self.wv, 'python_callback', self)
+        js.SetupScene.apply_callback('python_callback', self)
 
         self.wv.load(url)
 
@@ -89,7 +91,7 @@ class Window(QMainWindow):
     def translate(self):
         if self.selected_mesh is not None:
             print('translate')
-            js.SetupScene.translate_mesh_by_id(self.wv, self.selected_mesh,
+            js.SetupScene.translate_mesh_by_id(self.selected_mesh,
                                                1, 0, 0)
 
     def rotate(self):
@@ -97,14 +99,14 @@ class Window(QMainWindow):
             print('rotate')
 
             angle = str((np.pi / 8))
-            js.SetupScene.rotate_mesh_by_id(self.wv, self.selected_mesh,
+            js.SetupScene.rotate_mesh_by_id(self.selected_mesh,
                                             angle, 0, 0)
 
     def scale(self):
         if self.selected_mesh is not None:
             print('scale')
 
-            js.SetupScene.scale_mesh_by_id(self.wv, self.selected_mesh, 2, 1, 1)
+            js.SetupScene.scale_mesh_by_id(self.selected_mesh, 2, 1, 1)
 
     def viewSource(self):
         """
@@ -148,8 +150,8 @@ class Window(QMainWindow):
         mesh_file.close()
         data += "'')"
 
-        js.SetupScene.add_mesh(self.wv, data, 'my_cube')
-        js.SetupScene.add_mesh(self.wv, data, 'my_other_cube')
+        js.SetupScene.add_mesh(data, 'my_cube')
+        js.SetupScene.add_mesh(data, 'my_other_cube')
 
     def mesh_selection_changed(self, b=0):
         selected = self.list_widget.selectedIndexes()
@@ -166,7 +168,7 @@ class Window(QMainWindow):
             if mesh == obj_id:
                 continue
 
-            js.SetupScene.remove_highlight_from_mesh(self.wv, mesh)
+            js.SetupScene.remove_highlight_from_mesh(mesh)
 
         if update_list and not was_selected:
             if obj_id in self.meshes:
@@ -180,7 +182,7 @@ class Window(QMainWindow):
                 selection_model.select(new_selection,
                                        QtCore.QItemSelectionModel.Select)
 
-        js.SetupScene.highlight_mesh(self.wv, obj_id)
+        js.SetupScene.highlight_mesh(obj_id)
 
     def de_select_meshes(self, from_js=True):
         # @todo: do we ever need that param??
@@ -190,7 +192,7 @@ class Window(QMainWindow):
         self.selected_mesh = None
 
         for mesh in self.meshes:
-            js.SetupScene.remove_highlight_from_mesh(self.wv, mesh)
+            js.SetupScene.remove_highlight_from_mesh(mesh)
 
     @QtCore.pyqtSlot(str)
     def js_mesh_loaded(self, mesh_name):
@@ -198,7 +200,7 @@ class Window(QMainWindow):
         self.list_widget.addItem(mesh_name)  # maybe map binding to object ?
         self.meshes.append(mesh_name)
         if mesh_name == 'my_cube':
-            js.SetupScene.set_mesh_position(self.wv, mesh_name, 1, 1, 0)
+            js.SetupScene.set_mesh_position(mesh_name, 1, 1, 0)
 
     @QtCore.pyqtSlot(str, str)
     def js_mesh_load_error(self, mesh_name, error):
