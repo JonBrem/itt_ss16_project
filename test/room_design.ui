@@ -78,6 +78,35 @@
      </property>
     </column>
    </widget>
+   <widget class="QPushButton" name="btn_connect">
+    <property name="geometry">
+     <rect>
+      <x>1160</x>
+      <y>710</y>
+      <width>81</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Connect</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="line_edit_address">
+    <property name="geometry">
+     <rect>
+      <x>1130</x>
+      <y>680</y>
+      <width>131</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>18:2A:7B:F3:F8:F5</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

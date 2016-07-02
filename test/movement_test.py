@@ -12,6 +12,7 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 import numpy as np
 
 import js_interface_module as js
+import wiimote_interface_module as wii
 
 class Window(QMainWindow):
     def __init__(self, url):
@@ -60,7 +61,26 @@ class Window(QMainWindow):
         self.meshes = []
         self.selected_mesh = None
 
+        self.address_line_edit = self.win.line_edit_address
+        self.connect_btn = self.win.btn_connect
+
+        self.connect_btn.clicked.connect(self.connect_wiimote)
+
+        self.wiimote = wii.Wiimote()
+        self.wiimote.values_trigger.connect(
+            lambda: self.process_accelerometer_data(
+                self.wiimote.accelerometer_data))
+
+        self.i = 1
+
         self.win.show()
+
+    def process_accelerometer_data(self, data):
+        print(data)
+
+    def connect_wiimote(self):
+        address = self.address_line_edit.text()
+        self.wiimote.connect(address)
 
     def perform_action_of_child_element(self):
         item = self.tree_widget.currentItem()
