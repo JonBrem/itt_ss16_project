@@ -3,6 +3,7 @@
 import wiimote as wm
 from PyQt5 import QtCore
 import time
+import utility_module as um
 
 
 class Thread(QtCore.QThread):
@@ -25,6 +26,11 @@ class Wiimote(QtCore.QObject):
     def __init__(self):
         super(Wiimote, self).__init__()
         self.wm = None
+        self.num_samples = 32
+
+        self.ring_x_values = um.RingArray(self.num_samples)
+        self.ring_y_values = um.RingArray(self.num_samples)
+        self.ring_z_values = um.RingArray(self.num_samples)
 
         self.thread = Thread(50)
         self.thread.update_trigger.connect(self.__update_loop_)
@@ -41,12 +47,25 @@ class Wiimote(QtCore.QObject):
 
     def __update_loop_(self):
         if self.wm is None:
-                print('No Wiimote Connected')
+                # print('No Wiimote Connected')
+            pass
         else:
-            self.accelerometer_data = self.wm.accelerometer
+            x, y, z = self.wm.accelerometer
 
-            # filter accelerometer_data here
+            if x != 0 and y != 0 and z != 0:
+                self.ring_x_values.append(x)
+                self.ring_y_values.append(y)
+                self.ring_z_values.append(z)
 
-            self.values_trigger.emit()
+                ret_x = int(um.moving_average(self.ring_x_values,
+                                              self.num_samples))
 
+                ret_y = int(um.moving_average(self.ring_y_values,
+                                              self.num_samples))
 
+                ret_z = int(um.moving_average(self.ring_z_values,
+                                              self.num_samples))
+
+                self.accelerometer_data = [ret_x, ret_y, ret_z]
+
+                self.values_trigger.emit()

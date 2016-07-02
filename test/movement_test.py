@@ -71,12 +71,11 @@ class Window(QMainWindow):
             lambda: self.process_accelerometer_data(
                 self.wiimote.accelerometer_data))
 
-        self.i = 1
-
         self.win.show()
 
     def process_accelerometer_data(self, data):
         print(data)
+        pass
 
     def connect_wiimote(self):
         address = self.address_line_edit.text()
