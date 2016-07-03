@@ -18,9 +18,10 @@ import blend_model_picker as model_table
 
 
 class Window(QMainWindow):
-    def __init__(self, url):
+    def __init__(self, url, app):
         super(Window, self).__init__()
         self.progress = 0
+        self.app = app
 
         QNetworkProxyFactory.setUseSystemConfiguration(True)
 
@@ -281,6 +282,32 @@ class Window(QMainWindow):
         for mesh in self.meshes:
             js.SetupScene.remove_highlight_from_mesh(mesh)
 
+    def set_cursor_position(self, x, y, absolute=True):
+        if absolute:
+            self.cursor().setPos(x, y)
+        else:
+            self.cursor().setPos(self.win.pos().x() + x,
+                                 self.win.pos().y() + y)
+
+    def get_cursor_position(self, absolute=True):
+        if absolute:
+            return self.cursor().pos()
+        else:
+            cursor_pos = self.cursor().pos()
+            return QtCore.QPoint(cursor_pos.x() - self.win.pos().x(),
+                                 cursor_pos.y() - self.win.pos().y())
+
+    def simulate_click(self):
+        for ev_type in (QtGui.QMouseEvent.MouseButtonPress,
+                        QtGui.QMouseEvent.MouseButtonRelease):
+            event = QtGui.QMouseEvent(ev_type,
+                                      self.get_cursor_position(False),
+                                      self.get_cursor_position(True),
+                                      QtCore.Qt.LeftButton,
+                                      QtCore.Qt.LeftButton,
+                                      QtCore.Qt.NoModifier)
+            self.app.postEvent(self.win, event)
+
     @QtCore.pyqtSlot(str)
     def js_mesh_loaded(self, mesh_name):
         self.list_widget.addItem(mesh_name)  # maybe map binding to object ?
@@ -351,7 +378,7 @@ def main():
     app = QApplication(sys.argv)
     url = QUrl('file:///' + os.path.dirname(os.path.realpath(__file__)) + '/index.html')
 
-    win = Window(url)
+    win = Window(url, app)
 
     sys.exit(app.exec_())
 
