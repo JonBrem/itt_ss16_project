@@ -115,6 +115,10 @@ class Window(QMainWindow):
 
         self.read_mesh_data("assets/models_info.json")
 
+        # @TODO: should do this for all buttons etc. except the mesh table
+        self.wv.installEventFilter(self)
+        self.win.installEventFilter(self)
+
     def read_mesh_data(self, file_path):
         with open(file_path, 'r') as mesh_data_file:
             mesh_data = json.loads(mesh_data_file.read())
@@ -296,6 +300,13 @@ class Window(QMainWindow):
 
         if mode == 'scale':
             self.mesh_scale = js.deserialize_list(data)
+
+    # event filter that causes mesh selection table to lose focus
+    # (if it has focus)
+    def eventFilter(self, source, event):
+        if event.type() == QtGui.QMouseEvent.MouseButtonPress:
+            self.mesh_select_table.lose_focus()
+        return super(Window, self).eventFilter(source, event)
 
 
 def main():

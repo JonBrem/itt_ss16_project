@@ -67,7 +67,7 @@ class CategoryPickerTable(HorizontalSelectionTable):
         else:
             if self.showing_children:
                 self.hide_children()
-                self.showing_children = True
+                self.showing_children = False
 
     def show_children(self, category_data, index):
         self.mesh_table = MeshPickerTable(self.mesh_creator, self.parent())
@@ -85,19 +85,26 @@ class CategoryPickerTable(HorizontalSelectionTable):
         self.wrap_child_selection_changed()
 
     def hide_children(self):
-        self.mesh_table.setParent(None)
-        self.mesh_table = None
+        if self.mesh_table is not None:
+            self.mesh_table.setParent(None)
+            self.mesh_table = None
+        self.showing_children = False
 
     def wrap_child_selection_changed(self):
         orig_func = self.mesh_table.selectionChanged
 
         def wrapped(a, b):
             orig_func(a, b)
-            self.mesh_table.setParent(None)
-            self.mesh_table = None
-            self.showing_children = False
-            self.clearSelection()
+            if self.mesh_table is not None:
+                self.mesh_table.setParent(None)
+                self.mesh_table = None
+                self.showing_children = False
+                self.clearSelection()
         self.mesh_table.selectionChanged = wrapped
+
+    def lose_focus(self):
+        self.clearSelection()
+        self.hide_children()
 
 
 class MeshPickerTable(HorizontalSelectionTable):
@@ -106,6 +113,7 @@ class MeshPickerTable(HorizontalSelectionTable):
         super(MeshPickerTable, self).__init__(parent)
         self.mesh_data = []
         self.mesh_creator = mesh_creator
+        self.created_mesh = False
 
     def add_item(self, mesh_item):
         if "preview" in mesh_item:
@@ -117,7 +125,8 @@ class MeshPickerTable(HorizontalSelectionTable):
 
     def selectionChanged(self, a=0, b=0):
         selectedIndexes = self.selectedIndexes()
-        if len(selectedIndexes) > 0:
+        if len(selectedIndexes) > 0 and not self.created_mesh:
+            self.created_mesh = True
             selected_index = selectedIndexes[0].column()
             self.mesh_creator.request_add_mesh(
                 self.mesh_data[selected_index]["file"],
