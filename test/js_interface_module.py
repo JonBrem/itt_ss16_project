@@ -58,3 +58,25 @@ class SetupScene:
         SetupScene.webview.evaluateJavaScript(
             "setMeshPosition('" + mesh_id + "', " +
             str(x) + ", " + str(y) + ", " + str(z) + ");")
+
+    @staticmethod
+    def get_translation_rotation_scale(mesh_id):
+        SetupScene.webview.evaluateJavaScript(
+            "getTranslationRotationScale('" + mesh_id + "');"
+        )
+
+
+def deserialize_list(js_list_as_string):
+    l = []
+    s = ''
+
+    for c in list(js_list_as_string):
+        if c != ',':
+            s += c
+        else:
+            l.append(float(s))
+            s = ''
+
+    l.append(float(s))
+
+    return l

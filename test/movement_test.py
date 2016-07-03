@@ -49,22 +49,46 @@ class Window(QMainWindow):
 
         self.meshes = []
         self.selected_mesh = None
+        self.mesh_translation = []
+        self.mesh_rotation = []
+        self.mesh_scale = []
 
         self.address_line_edit = self.win.line_edit_address
         self.connect_btn = self.win.btn_connect
 
         self.connect_btn.clicked.connect(self.connect_wiimote)
 
-        self.wiimote = wii.Wiimote()
-        self.wiimote.values_trigger.connect(
-            lambda: self.process_accelerometer_data(
-                self.wiimote.accelerometer_data))
+        self.initial_accel_data = None
+
+        self.wiimote = wii.Wiimote(50)
+
+        self.wiimote.a_button_clicked.connect(
+            lambda: self.on_wm_a_button_press(self.wiimote.accelerometer_data))
+        self.wiimote.b_button_clicked.connect(
+            lambda: self.on_wm_b_button_press(self.wiimote.accelerometer_data))
 
         self.win.show()
 
-    def process_accelerometer_data(self, data):
-        print(data)
-        pass
+    def on_wm_a_button_press(self, data):
+        if self.selected_mesh is not None:
+            self.initial_accel_data = data
+            print(self.initial_accel_data)
+
+    def on_wm_b_button_press(self, data):
+        if self.selected_mesh is not None:
+            js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
+
+            if data[2] > 505:
+                #  - angle rotation (to the left)
+                one_degree_in_sensor_values = (512 - 407) / 90
+                one_radian_in_sensor_values = one_degree_in_sensor_values * \
+                                              np.pi / 180.0
+
+                angle = (512 - data[0]) * one_radian_in_sensor_values / 1.3
+
+
+                js.SetupScene.rotate_mesh_by_id(self.selected_mesh,
+                                            0, 0, angle + self.mesh_rotation[0])
 
     def connect_wiimote(self):
         address = self.address_line_edit.text()
@@ -116,22 +140,17 @@ class Window(QMainWindow):
 
     def translate(self):
         if self.selected_mesh is not None:
-            print('translate')
             js.SetupScene.translate_mesh_by_id(self.selected_mesh,
                                                1, 0, 0)
 
     def rotate(self):
         if self.selected_mesh is not None:
-            print('rotate')
-
             angle = str((np.pi / 8))
             js.SetupScene.rotate_mesh_by_id(self.selected_mesh,
-                                            angle, 0, 0)
+                                            0, 0, angle)
 
     def scale(self):
         if self.selected_mesh is not None:
-            print('scale')
-
             js.SetupScene.scale_mesh_by_id(self.selected_mesh, 2, 1, 1)
 
     def viewSource(self):
@@ -222,7 +241,6 @@ class Window(QMainWindow):
 
     @QtCore.pyqtSlot(str)
     def js_mesh_loaded(self, mesh_name):
-        print("loaded ", mesh_name)
         self.list_widget.addItem(mesh_name)  # maybe map binding to object ?
         self.meshes.append(mesh_name)
         self.select_mesh(mesh_name)
@@ -244,8 +262,6 @@ class Window(QMainWindow):
         if z != '':
             s += z
 
-        print(action + ' mesh: ' + mesh_id + ' in: ' + s)
-
     @QtCore.pyqtSlot(str)
     def on_object_clicked(self, obj_id):
         if obj_id in self.meshes:
@@ -263,6 +279,23 @@ class Window(QMainWindow):
         :return:
         """
         print(log)
+
+    @QtCore.pyqtSlot(str, str, str)
+    def on_translation_rotation_scale_request(self, trans, rot, scale):
+        self.get_mesh_properties(trans, 'trans')
+        self.get_mesh_properties(rot, 'rot')
+        self.get_mesh_properties(scale, 'scale')
+
+    def get_mesh_properties(self, data, mode):
+
+        if mode == 'trans':
+            self.mesh_translation = js.deserialize_list(data)
+
+        if mode == 'rot':
+            self.mesh_rotation = js.deserialize_list(data)
+
+        if mode == 'scale':
+            self.mesh_scale = js.deserialize_list(data)
 
 
 def main():

@@ -51,6 +51,7 @@ function addMesh(data, id) {
             newMeshes[0].id = id;
             meshes[id] = newMeshes[0];
             python_callback.js_mesh_loaded(id);
+            python_callback.on_js_console_log(meshes[id].position);
         });
     } catch (e) {
         python_callback.js_mesh_load_error(id, e);
@@ -84,6 +85,8 @@ function translateMeshByID(id, x, y, z) {
 
         python_callback.on_js_object_manipulation_performed(id, 'translated',
                                                             x1, y1, z1);
+
+        python_callback.on_js_console_log('translation: ' + meshes[id].position);
 }
 
 function rotateMeshByID(id, x, y, z) {
@@ -101,12 +104,14 @@ function rotateMeshByID(id, x, y, z) {
         if(z != 0)
             z1 = 'z';
 
-        meshes[id].rotation.x += x;
-        meshes[id].rotation.y += y;
-        meshes[id].rotation.z += z;
+        meshes[id].rotation.x = x;
+        meshes[id].rotation.y = y;
+        meshes[id].rotation.z = z;
 
         python_callback.on_js_object_manipulation_performed(id, 'rotated',
                                                             x1, y1, z1);
+
+        python_callback.on_js_console_log('rotation: ' + meshes[id].rotation);
     }
 }
 
@@ -133,6 +138,8 @@ function scaleMeshByID(id, factorX, factorY, factorZ) {
 
         python_callback.on_js_object_manipulation_performed(id, 'scaled',
                                                             x1, y1, z1);
+
+        python_callback.on_js_console_log('scaling: ' + meshes[id].scaling);
     }
 }
 
@@ -160,6 +167,20 @@ function removeHighlight(obj_id) {
         meshes[obj_id].outlineWidth = 0.0;
         meshes[obj_id].renderOutline = false;
     }
+}
+
+function getTranslationRotationScale(mesh_id) {
+    trans = [meshes[mesh_id].position.x, meshes[mesh_id].position.y,
+            meshes[mesh_id].position.z]
+
+    rot = [meshes[mesh_id].rotation.x, meshes[mesh_id].rotation.y,
+          meshes[mesh_id].rotation.z]
+
+    scale = [meshes[mesh_id].scaling.x, meshes[mesh_id].scaling.y,
+            meshes[mesh_id].scaling.z]
+
+
+    python_callback.on_translation_rotation_scale_request(trans, rot, scale)
 }
 
 // @TODO do we need those? click/mouse press might be enough for selecting

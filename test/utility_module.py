@@ -40,9 +40,4 @@ class RingArray(deque):
 
 
 def moving_average(data, num_samples):
-    _sum = 0.0
-
-    for value in data:
-        _sum += value
-
-    return _sum / num_samples
+    return sum(data) / num_samples
