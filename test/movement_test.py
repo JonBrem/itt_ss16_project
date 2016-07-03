@@ -53,12 +53,14 @@ class Window(QMainWindow):
         self.mesh_rotation = []
         self.mesh_scale = []
 
+        self.is_first_b_button_callback = True
+
         self.address_line_edit = self.win.line_edit_address
         self.connect_btn = self.win.btn_connect
 
         self.connect_btn.clicked.connect(self.connect_wiimote)
 
-        self.initial_accel_data = None
+        self.initial_accelerometer_data = None
 
         self.wiimote = wii.Wiimote(50)
 
@@ -67,28 +69,64 @@ class Window(QMainWindow):
         self.wiimote.b_button_clicked.connect(
             lambda: self.on_wm_b_button_press(self.wiimote.accelerometer_data))
 
+        self.wiimote.b_button_released.connect(self.on_wm_b_button_release)
+
+        self.wiimote.plus_button_clicked.connect(self.on_wm_plus_button_press)
+        self.wiimote.minus_button_clicked.connect(self.on_wm_minus_button_press)
+
+        self.last_angle_y_rotation = 0.0
+
         self.win.show()
 
     def on_wm_a_button_press(self, data):
         if self.selected_mesh is not None:
-            self.initial_accel_data = data
-            print(self.initial_accel_data)
+            self.initial_accelerometer_data = data
 
     def on_wm_b_button_press(self, data):
+        if self.is_first_b_button_callback:
+            self.initial_accelerometer_data = data
+            self.is_first_b_button_callback = False
+
         if self.selected_mesh is not None:
-            js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
+            self.handle_mesh_rotation_y(data)
+            print(data)
 
-            if data[2] > 505:
-                #  - angle rotation (to the left)
-                one_degree_in_sensor_values = (512 - 407) / 90
-                one_radian_in_sensor_values = one_degree_in_sensor_values * \
-                                              np.pi / 180.0
+    def on_wm_plus_button_press(self):
+        js.SetupScene.scale_mesh_by_id(self.selected_mesh, 2, 2, 2)
+        print('plus')
 
-                angle = (512 - data[0]) * one_radian_in_sensor_values / 1.3
+    def on_wm_minus_button_press(self):
+        js.SetupScene.scale_mesh_by_id(self.selected_mesh, 0.5, 0.5, 0.5)
 
+    def handle_mesh_rotation_y(self, data):
+        js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
 
-                js.SetupScene.rotate_mesh_by_id(self.selected_mesh,
-                                            0, 0, angle + self.mesh_rotation[0])
+        angle_step = (512 - 407) / 90 * np.pi / 180
+
+        angle = (self.initial_accelerometer_data[0]-data[0]) * angle_step/1.3
+
+        # counter-clockwise rotation checking // MAGIC NUMBER GALORE
+        if data[2] > 507 and 400 < data[0] < 512:
+            js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, angle +
+                                            self.last_angle_y_rotation, 0)
+
+        elif data[2] < 507 and 400 < data[0] < 512:
+            js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, (angle +
+                                            self.last_angle_y_rotation) * -1, 0)
+
+        elif data[2] < 507 and 512 < data[0] < 615:
+            js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, (angle +
+                                            self.last_angle_y_rotation) * -1, 0)
+
+        elif data[2] > 506 and 507 < data[0] < 615:
+            js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, angle +
+                                            self.last_angle_y_rotation, 0)
+
+    def on_wm_b_button_release(self):
+        if len(self.mesh_rotation) != 0:
+            self.last_angle_y_rotation = self.mesh_rotation[1]
+
+        self.is_first_b_button_callback = True
 
     def connect_wiimote(self):
         address = self.address_line_edit.text()

@@ -59,7 +59,6 @@ class Wiimote(QtCore.QObject):
         self.thread.update_trigger.connect(self.__update_loop_)
         self.thread.start()
         self.accelerometer_data = None
-        self.is_a_pressed = False
 
         self.button_states = dict.fromkeys(['A', 'B', 'Up', 'Down', 'Left',
                                             'Right', 'Home', 'Minus',
@@ -97,24 +96,27 @@ class Wiimote(QtCore.QObject):
 
                 self.accelerometer_data = [ret_x, ret_y, ret_z]
 
-            self.allow_button_press_once('A')
-            self.allow_button_hold('B', self.b_button_clicked,
-                                   self.b_button_released)
+            self.__allow_button_press_once_('A', self.a_button_clicked)
+            self.__allow_button_hold_('B', self.b_button_clicked,
+                                      self.b_button_released)
+
+            self.__allow_button_press_once_('Plus', self.plus_button_clicked)
+            self.__allow_button_press_once_('Minus', self.minus_button_clicked)
 
             # add more buttons as seen fit
 
-    def allow_button_press_once(self, btn):
+    def __allow_button_press_once_(self, btn, trigger):
         if self.wm.buttons[btn] and not self.button_states[btn]:
             self.button_states[btn] = True
 
-            self.a_button_clicked.emit()
+            trigger.emit()
         elif not self.wm.buttons[btn] and self.button_states[btn]:
             self.button_states[btn] = False
 
-    def allow_button_hold(self, btn, trigger_click, trigger_release):
+    def __allow_button_hold_(self, btn, trigger_click, trigger_release):
         if self.wm.buttons[btn]:
-            self.button_states[btn] = True
             trigger_click.emit()
+            self.button_states[btn] = True
         else:
-            self.button_states[btn] = False
             trigger_release.emit()
+            self.button_states[btn] = False

@@ -85,8 +85,6 @@ function translateMeshByID(id, x, y, z) {
 
         python_callback.on_js_object_manipulation_performed(id, 'translated',
                                                             x1, y1, z1);
-
-        python_callback.on_js_console_log('translation: ' + meshes[id].position);
 }
 
 function rotateMeshByID(id, x, y, z) {
@@ -110,8 +108,6 @@ function rotateMeshByID(id, x, y, z) {
 
         python_callback.on_js_object_manipulation_performed(id, 'rotated',
                                                             x1, y1, z1);
-
-        python_callback.on_js_console_log('rotation: ' + meshes[id].rotation);
     }
 }
 
@@ -138,8 +134,6 @@ function scaleMeshByID(id, factorX, factorY, factorZ) {
 
         python_callback.on_js_object_manipulation_performed(id, 'scaled',
                                                             x1, y1, z1);
-
-        python_callback.on_js_console_log('scaling: ' + meshes[id].scaling);
     }
 }
 
@@ -171,16 +165,16 @@ function removeHighlight(obj_id) {
 
 function getTranslationRotationScale(mesh_id) {
     trans = [meshes[mesh_id].position.x, meshes[mesh_id].position.y,
-            meshes[mesh_id].position.z]
+            meshes[mesh_id].position.z];
 
     rot = [meshes[mesh_id].rotation.x, meshes[mesh_id].rotation.y,
-          meshes[mesh_id].rotation.z]
+          meshes[mesh_id].rotation.z];
 
     scale = [meshes[mesh_id].scaling.x, meshes[mesh_id].scaling.y,
-            meshes[mesh_id].scaling.z]
+            meshes[mesh_id].scaling.z];
 
 
-    python_callback.on_translation_rotation_scale_request(trans, rot, scale)
+    python_callback.on_translation_rotation_scale_request(trans, rot, scale);
 }
 
 // @TODO do we need those? click/mouse press might be enough for selecting
