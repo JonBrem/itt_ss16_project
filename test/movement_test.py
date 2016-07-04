@@ -335,27 +335,38 @@ class Window(QMainWindow):
         if absolute:
             self.cursor().setPos(x, y)
         else:
-            self.cursor().setPos(self.win.pos().x() + x,
-                                 self.win.pos().y() + y)
+            self.cursor().setPos(self.win.centralWidget.pos().x() + x,
+                                 self.win.centralWidget.pos().y() + y)
 
     def get_cursor_position(self, absolute=True):
         if absolute:
             return self.cursor().pos()
         else:
             cursor_pos = self.cursor().pos()
+            # trial and error
+            y_fix = self.win.style().pixelMetric(QtWidgets.QStyle.PM_TitleBarHeight) * 1.5 + 1
             return QtCore.QPoint(cursor_pos.x() - self.win.pos().x(),
-                                 cursor_pos.y() - self.win.pos().y())
+                                 cursor_pos.y() - self.win.pos().y() - y_fix)
 
     def simulate_click(self):
+        rel_cursor = self.get_cursor_position(False)
+        abs_cursor = self.get_cursor_position(True)
+
+        clicked_child = self.win.childAt(rel_cursor)
+        if clicked_child is None:
+            clicked_child = self.win
         for ev_type in (QtGui.QMouseEvent.MouseButtonPress,
                         QtGui.QMouseEvent.MouseButtonRelease):
+            global_child_coords = clicked_child.mapToGlobal(QtCore.QPoint(0, 0))
+            pos = QtCore.QPoint(abs_cursor.x() - global_child_coords.x(),
+                                abs_cursor.y() - global_child_coords.y())
             event = QtGui.QMouseEvent(ev_type,
-                                      self.get_cursor_position(False),
-                                      self.get_cursor_position(True),
+                                      pos,
+                                      abs_cursor,
                                       QtCore.Qt.LeftButton,
                                       QtCore.Qt.LeftButton,
                                       QtCore.Qt.NoModifier)
-            self.app.postEvent(self.win, event)
+            self.app.postEvent(clicked_child, event)
 
     @QtCore.pyqtSlot(str)
     def js_mesh_loaded(self, mesh_name):
@@ -463,6 +474,8 @@ class Window(QMainWindow):
             elif event.key() == 82:  # r[emove]
                 if self.selected_mesh is not None:
                     self.delete_mesh(self.selected_mesh)
+            elif event.key() == 75:  # [clic]k
+                self.simulate_click()
             else:
                 print(event.key())
         return super(Window, self).eventFilter(source, event)
