@@ -4670,6 +4670,13 @@ var BABYLON;
                 url = Tools.EncodeArrayBufferTobase64(url);
             }
             url = Tools.CleanUrl(url);
+
+
+            if (BABYLON.base64ImageContainer != undefined && url in BABYLON.base64ImageContainer) {
+                url = BABYLON.base64ImageContainer[url];
+            } else {
+            }
+
             var img = new Image();
             if (url.substr(0, 5) !== "data:") {
                 if (Tools.CorsBehavior) {
@@ -24752,7 +24759,8 @@ var BABYLON;
             plugin.extensions = plugin.extensions.toLowerCase();
             SceneLoader._registeredPlugins.push(plugin);
         };
-        SceneLoader.ImportMesh = function (meshesNames, rootUrl, sceneFilename, scene, onsuccess, progressCallBack, onerror) {
+        SceneLoader.ImportMesh = function (meshesNames, rootUrl, sceneFilename, scene, onsuccess, progressCallBack, onerror, images) {
+            BABYLON.base64ImageContainer = images;
             if (sceneFilename.substr && sceneFilename.substr(0, 1) === "/") {
                 BABYLON.Tools.Error("Wrong sceneFilename parameter");
                 return;

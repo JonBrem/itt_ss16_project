@@ -45,14 +45,14 @@ jQuery(document).ready(function($) {
 });
 
 
-function addMesh(data, id) {
+function addMesh(data, id, images) {
     try {
         BABYLON.SceneLoader.ImportMesh("", "", "data:" + data, scene, function (newMeshes) {
             newMeshes[0].id = id;
             meshes[id] = newMeshes[0];
             python_callback.js_mesh_loaded(id);
             python_callback.on_js_console_log(meshes[id].position);
-        });
+        }, function(a){}, function(b){}, images);
     } catch (e) {
         python_callback.js_mesh_load_error(id, e);
     }

@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import (QAction, QApplication, QLineEdit, QMainWindow,
 from PyQt5.QtNetwork import QNetworkProxyFactory, QNetworkRequest
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
+import json
+
 
 class SetupScene:
     webview = None
@@ -39,9 +41,9 @@ class SetupScene:
             str(factor_z) + " );")
 
     @staticmethod
-    def add_mesh(data, mesh_id):
+    def add_mesh(data, mesh_id, images={}):
         SetupScene.webview.evaluateJavaScript(
-            "addMesh(" + data + ",'" + mesh_id + "');")
+            "addMesh(" + data + ",'" + mesh_id + "'," + json.dumps(images) + ");")
 
     @staticmethod
     def highlight_mesh(mesh_id):

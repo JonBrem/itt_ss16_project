@@ -5,9 +5,9 @@
             "img": "assets/img/chair-4-128.png",
             "models": [
                 {
-                    "name": "Simple Chair",
+                    "name": "Simple_Chair",
                     "preview": "assets/img/chair-4-128.png",
-                    "file": "assets/models/box.babylon"
+                    "file": "assets/models/chair_basic.babylon"
                 }
             ]
         },

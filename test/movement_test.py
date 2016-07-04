@@ -2,7 +2,7 @@
 
 import os
 
-from PyQt5 import uic, QtGui, QtCore, Qt, QtWidgets
+from PyQt5 import uic, QtGui, QtCore, Qt, QtWidgets, QtWebKit
 from PyQt5.QtCore import QFile, QIODevice, Qt, QTextStream, QUrl
 from PyQt5.QtWidgets import (QAction, QApplication, QLineEdit, QMainWindow,
         QSizePolicy, QStyle, QTextEdit)
@@ -11,6 +11,7 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
 import numpy as np
 import json
+import base64
 
 import js_interface_module as js
 import wiimote_interface_module as wii
@@ -34,7 +35,6 @@ class Window(QMainWindow):
         js.SetupScene.apply_callback('python_callback', self)
 
         self.wv.load(url)
-
         self.wv.titleChanged.connect(self.adjustTitle)
         self.wv.loadFinished.connect(self.finishLoading)
 
@@ -172,14 +172,28 @@ class Window(QMainWindow):
             index += 1
 
         mesh_file = open(mesh_file)
+        only_json = ""
 
         data = '('
         for line in mesh_file:
             data += "'" + line[:-1] + "' + \n"
+            only_json += line
         mesh_file.close()
         data += "'')"
 
-        js.SetupScene.add_mesh(data, name)
+        images = {}
+        # pre-load any jpeg data for js:
+        json_data = json.loads(only_json)
+        if "materials" in json_data:
+            for material in json_data["materials"]:
+                if "diffuseTexture" in material:
+                    if "name" in material["diffuseTexture"]:
+                        file_name = "assets/models/" + material["diffuseTexture"]["name"]
+                        if os.path.isfile(file_name):
+                            jpeg_file = "data:image/jpg;base64," + str(base64.b64encode(open(file_name, "rb").read()))[2:]
+                            images[material["diffuseTexture"]["name"]] = jpeg_file
+
+        js.SetupScene.add_mesh(data, name, images)
 
     def translate(self):
         if self.selected_mesh is not None:
