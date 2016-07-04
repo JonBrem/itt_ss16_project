@@ -128,9 +128,9 @@ function scaleMeshByID(id, factorX, factorY, factorZ) {
         if(factorZ != 1)
             z1 = 'z';
 
-        meshes[id].scaling.x *= factorX;
-        meshes[id].scaling.y *= factorY;
-        meshes[id].scaling.z *= factorZ;
+        meshes[id].scaling.x = factorX;
+        meshes[id].scaling.y = factorY;
+        meshes[id].scaling.z = factorZ;
 
         python_callback.on_js_object_manipulation_performed(id, 'scaled',
                                                             x1, y1, z1);

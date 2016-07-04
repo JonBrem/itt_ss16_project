@@ -76,6 +76,7 @@ class Window(QMainWindow):
         self.wiimote.minus_button_clicked.connect(self.on_wm_minus_button_press)
 
         self.last_angle_y_rotation = 0.0
+        self.last_scale_factor = 1.0
 
         self.win.show()
 
@@ -89,43 +90,67 @@ class Window(QMainWindow):
             self.is_first_b_button_callback = False
 
         if self.selected_mesh is not None:
+            js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
+            self.handle_mesh_scaling_fine(data)
             self.handle_mesh_rotation_y(data)
-            print(data)
 
     def on_wm_plus_button_press(self):
-        js.SetupScene.scale_mesh_by_id(self.selected_mesh, 2, 2, 2)
-        print('plus')
+        if self.selected_mesh is not None:
+            js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
+
+            js.SetupScene.scale_mesh_by_id(self.selected_mesh,
+                                           self.last_scale_factor * 1.1,
+                                           self.last_scale_factor * 1.1,
+                                           self.last_scale_factor * 1.1)
 
     def on_wm_minus_button_press(self):
-        js.SetupScene.scale_mesh_by_id(self.selected_mesh, 0.5, 0.5, 0.5)
+        if self.selected_mesh is not None:
+            js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
+
+            js.SetupScene.scale_mesh_by_id(self.selected_mesh,
+                                           self.last_scale_factor * 0.9,
+                                           self.last_scale_factor * 0.9,
+                                           self.last_scale_factor * 0.9)
+
+    def handle_mesh_scaling_fine(self, data):
+        scale_step = (512 - 407) / 10000
+
+        scale = ((self.initial_accelerometer_data[1]-data[1]) * scale_step)
+
+        if data[2] > 511:
+            js.SetupScene.scale_mesh_by_id(self.selected_mesh,
+                                           scale + self.last_scale_factor,
+                                           scale + self.last_scale_factor,
+                                           scale + self.last_scale_factor)
 
     def handle_mesh_rotation_y(self, data):
-        js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
-
         angle_step = (512 - 407) / 90 * np.pi / 180
 
         angle = (self.initial_accelerometer_data[0]-data[0]) * angle_step/1.3
 
-        # counter-clockwise rotation checking // MAGIC NUMBER GALORE
-        if data[2] > 507 and 400 < data[0] < 512:
+        if data[2] > 506:
             js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, angle +
                                             self.last_angle_y_rotation, 0)
-
-        elif data[2] < 507 and 400 < data[0] < 512:
+        '''
+        elif data[2] < 507:
             js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, (angle +
                                             self.last_angle_y_rotation) * -1, 0)
-
-        elif data[2] < 507 and 512 < data[0] < 615:
-            js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, (angle +
-                                            self.last_angle_y_rotation) * -1, 0)
-
-        elif data[2] > 506 and 507 < data[0] < 615:
-            js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, angle +
-                                            self.last_angle_y_rotation, 0)
+        '''
 
     def on_wm_b_button_release(self):
         if len(self.mesh_rotation) != 0:
             self.last_angle_y_rotation = self.mesh_rotation[1]
+
+        if len(self.mesh_scale) != 0:
+            self.last_scale_factor = self.mesh_scale[0]
+
+            if self.mesh_scale[0] < 0.1:
+                js.SetupScene.scale_mesh_by_id(self.selected_mesh,
+                                               0.1,
+                                               0.1,
+                                               0.1)
+
+                self.last_scale_factor = 0.1
 
         self.is_first_b_button_callback = True
 
