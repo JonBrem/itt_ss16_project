@@ -98,6 +98,8 @@ class Window(QMainWindow):
         if self.selected_mesh is not None:
             js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
 
+            self.last_scale_factor = self.mesh_scale[0]
+
             js.SetupScene.scale_mesh_by_id(self.selected_mesh,
                                            self.last_scale_factor * 1.1,
                                            self.last_scale_factor * 1.1,
@@ -105,6 +107,10 @@ class Window(QMainWindow):
 
     def on_wm_minus_button_press(self):
         if self.selected_mesh is not None:
+            js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
+
+            self.last_scale_factor = self.mesh_scale[0]
+
             js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
 
             js.SetupScene.scale_mesh_by_id(self.selected_mesh,
