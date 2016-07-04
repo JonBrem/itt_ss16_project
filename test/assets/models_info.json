@@ -5,9 +5,29 @@
             "img": "assets/img/chair-4-128.png",
             "models": [
                 {
-                    "name": "Simple_Chair",
+                    "name": "Simple Chair",
                     "preview": "assets/img/chair-4-128.png",
                     "file": "assets/models/chair_basic.babylon"
+                },
+                {
+                    "name": "Office Chair",
+                    "preview": "assets/img/chair-4-128.png",
+                    "file": "assets/models/red_office_chair.babylon"
+                },
+                {
+                    "name": "Dark Chair",
+                    "preview": "assets/img/chair-4-128.png",
+                    "file": "assets/models/dark_chair.babylon"
+                },
+                {
+                    "name": "Conference Chair",
+                    "preview": "assets/img/chair-4-128.png",
+                    "file": "assets/models/conference_chair.babylon"
+                },
+                {
+                    "name": "Comfy High Chair",
+                    "preview": "assets/img/chair-4-128.png",
+                    "file": "assets/models/comfy_high_chair.babylon"
                 }
             ]
         },
