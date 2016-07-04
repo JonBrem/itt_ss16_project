@@ -18,7 +18,7 @@ class SetupScene:
         SetupScene.webview = wv.page().mainFrame()
 
     @staticmethod
-    def apply_callback( name, parent):
+    def apply_callback(name, parent):
         SetupScene.webview.addToJavaScriptWindowObject(name, parent)
 
     @staticmethod
@@ -41,9 +41,10 @@ class SetupScene:
             str(factor_z) + " );")
 
     @staticmethod
-    def add_mesh(data, mesh_id, images={}):
+    def add_mesh(data, mesh_id, images={}, mesh_type="box"):
         SetupScene.webview.evaluateJavaScript(
-            "addMesh(" + data + ",'" + mesh_id + "'," + json.dumps(images) + ");")
+            "addMesh(" + data + ",'" + mesh_id + "'," + json.dumps(images) +
+            ",'" + mesh_type + "');")
 
     @staticmethod
     def highlight_mesh(mesh_id):
@@ -64,8 +65,11 @@ class SetupScene:
     @staticmethod
     def get_translation_rotation_scale(mesh_id):
         SetupScene.webview.evaluateJavaScript(
-            "getTranslationRotationScale('" + mesh_id + "');"
-        )
+            "getTranslationRotationScale('" + mesh_id + "');")
+
+    @staticmethod
+    def save_state():
+        SetupScene.webview.evaluateJavaScript("saveScene();")
 
 
 def deserialize_list(js_list_as_string):

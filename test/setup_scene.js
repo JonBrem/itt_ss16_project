@@ -45,10 +45,11 @@ jQuery(document).ready(function($) {
 });
 
 
-function addMesh(data, id, images) {
+function addMesh(data, id, images, type) {
     try {
         BABYLON.SceneLoader.ImportMesh("", "", "data:" + data, scene, function (newMeshes) {
             newMeshes[0].id = id;
+            newMeshes[0].mesh_type = type;
             meshes[id] = newMeshes[0];
             python_callback.js_mesh_loaded(id);
             python_callback.on_js_console_log(meshes[id].position);
@@ -175,6 +176,22 @@ function getTranslationRotationScale(mesh_id) {
 
 
     python_callback.on_translation_rotation_scale_request(trans, rot, scale);
+}
+
+function saveScene() {
+    scene_data = {"meshes": []};
+
+    for (id in meshes) {    
+        scene_data["meshes"][scene_data["meshes"].length] = {
+            "id": meshes[id].id,
+            "type": meshes[id].type,
+            "position": [meshes[id].position.x, meshes[id].position.y, meshes[id].position.z],
+            "rotation": [meshes[id].rotation.x, meshes[id].rotation.y, meshes[id].rotation.z],
+            "scaling": [meshes[id].scaling.x, meshes[id].scaling.y, meshes[id].scaling.z]
+        };
+    }
+
+    python_callback.save_state_result(JSON.stringify(scene_data));
 }
 
 // @TODO do we need those? click/mouse press might be enough for selecting

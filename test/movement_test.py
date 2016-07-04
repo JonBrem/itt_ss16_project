@@ -196,6 +196,7 @@ class Window(QMainWindow):
                 self.mesh_select_table.add_item(category)
 
     def request_add_mesh(self, mesh_file, name):
+        type_ = name
         original_name = name
         index = 1
         while name in self.meshes:
@@ -224,7 +225,7 @@ class Window(QMainWindow):
                             jpeg_file = "data:image/jpg;base64," + str(base64.b64encode(open(file_name, "rb").read()))[2:]
                             images[material["diffuseTexture"]["name"]] = jpeg_file
 
-        js.SetupScene.add_mesh(data, name, images)
+        js.SetupScene.add_mesh(data, name, images, type_)
 
     def translate(self):
         if self.selected_mesh is not None:
@@ -411,11 +412,21 @@ class Window(QMainWindow):
         if mode == 'scale':
             self.mesh_scale = js.deserialize_list(data)
 
+    @QtCore.pyqtSlot(str)
+    def save_state_result(self, scene_json):
+        print(scene_json)
+
+    def load_state(self, scene_json):
+        pass
+
     # event filter that causes mesh selection table to lose focus
     # (if it has focus)
     def eventFilter(self, source, event):
         if event.type() == QtGui.QMouseEvent.MouseButtonPress:
             self.mesh_select_table.lose_focus()
+        elif event.type() == QtGui.QKeyEvent.KeyPress:
+            if event.key() == 83:
+                js.SetupScene.save_state()
         return super(Window, self).eventFilter(source, event)
 
 
