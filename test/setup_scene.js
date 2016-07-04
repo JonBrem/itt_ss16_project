@@ -45,18 +45,42 @@ jQuery(document).ready(function($) {
 });
 
 
-function addMesh(data, id, images, type) {
+function addMesh(data, id, images, type, transform, fileName) {
     try {
         BABYLON.SceneLoader.ImportMesh("", "", "data:" + data, scene, function (newMeshes) {
             newMeshes[0].id = id;
             newMeshes[0].mesh_type = type;
             meshes[id] = newMeshes[0];
+
+            // only called when this is loaded
+            if (transform != null) {
+                loadTransformations(newMeshes[0], transform);
+            }
+
+            // for loading only
+            if (fileName != undefined && fileName != null) {
+                newMeshes[0].modelFileName = fileName;
+            }
+
             python_callback.js_mesh_loaded(id);
-            python_callback.on_js_console_log(meshes[id].position);
         }, function(a){}, function(b){}, images);
     } catch (e) {
         python_callback.js_mesh_load_error(id, e);
     }
+}
+
+function loadTransformations(mesh, transform) {
+    mesh.position.x = transform["pos"][0];
+    mesh.position.y = transform["pos"][1];
+    mesh.position.z = transform["pos"][2];
+
+    mesh.rotation.x = transform["rot"][0];
+    mesh.rotation.y = transform["rot"][1];
+    mesh.rotation.z = transform["rot"][2];
+
+    mesh.scaling.x = transform["scale"][0];
+    mesh.scaling.y = transform["scale"][1];
+    mesh.scaling.z = transform["scale"][2];
 }
 
 function setMeshPosition(id, x, y, z) {
@@ -178,16 +202,24 @@ function getTranslationRotationScale(mesh_id) {
     python_callback.on_translation_rotation_scale_request(trans, rot, scale);
 }
 
+function removeMesh(mesh_id) {
+    if (mesh_id in meshes) {
+        meshes[mesh_id].dispose();
+        delete meshes["mesh_id"];
+    }
+}
+
 function saveScene() {
     scene_data = {"meshes": []};
 
     for (id in meshes) {    
         scene_data["meshes"][scene_data["meshes"].length] = {
             "id": meshes[id].id,
-            "type": meshes[id].type,
-            "position": [meshes[id].position.x, meshes[id].position.y, meshes[id].position.z],
-            "rotation": [meshes[id].rotation.x, meshes[id].rotation.y, meshes[id].rotation.z],
-            "scaling": [meshes[id].scaling.x, meshes[id].scaling.y, meshes[id].scaling.z]
+            "type": meshes[id].mesh_type,
+            "pos": [meshes[id].position.x, meshes[id].position.y, meshes[id].position.z],
+            "rot": [meshes[id].rotation.x, meshes[id].rotation.y, meshes[id].rotation.z],
+            "scale": [meshes[id].scaling.x, meshes[id].scaling.y, meshes[id].scaling.z],
+            "fileName": meshes[id].modelFileName
         };
     }
 

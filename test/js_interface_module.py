@@ -41,10 +41,11 @@ class SetupScene:
             str(factor_z) + " );")
 
     @staticmethod
-    def add_mesh(data, mesh_id, images={}, mesh_type="box"):
+    def add_mesh(data, mesh_id, images={}, mesh_type="box",
+                 transform="null", mesh_file=""):
         SetupScene.webview.evaluateJavaScript(
             "addMesh(" + data + ",'" + mesh_id + "'," + json.dumps(images) +
-            ",'" + mesh_type + "');")
+            ",'" + mesh_type + "'," + transform + ",'" + mesh_file + "');")
 
     @staticmethod
     def highlight_mesh(mesh_id):
@@ -70,6 +71,10 @@ class SetupScene:
     @staticmethod
     def save_state():
         SetupScene.webview.evaluateJavaScript("saveScene();")
+
+    @staticmethod
+    def remove_mesh(mesh_id):
+        SetupScene.webview.evaluateJavaScript("removeMesh('" + mesh_id + "');")
 
 
 def deserialize_list(js_list_as_string):

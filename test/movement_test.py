@@ -80,6 +80,8 @@ class Window(QMainWindow):
 
         self.win.show()
 
+        self.saved_state = None
+
     def on_wm_a_button_press(self, data):
         if self.selected_mesh is not None:
             self.initial_accelerometer_data = data
@@ -195,15 +197,16 @@ class Window(QMainWindow):
             for category in mesh_data['categories']:
                 self.mesh_select_table.add_item(category)
 
-    def request_add_mesh(self, mesh_file, name):
-        type_ = name
+    def request_add_mesh(self, mesh_file_name, type_, name=None, transform="null"):
+        if name is None:
+            name = type_
         original_name = name
         index = 1
         while name in self.meshes:
             name = original_name + str(index)
             index += 1
 
-        mesh_file = open(mesh_file)
+        mesh_file = open(mesh_file_name)
         only_json = ""
 
         data = '('
@@ -225,7 +228,7 @@ class Window(QMainWindow):
                             jpeg_file = "data:image/jpg;base64," + str(base64.b64encode(open(file_name, "rb").read()))[2:]
                             images[material["diffuseTexture"]["name"]] = jpeg_file
 
-        js.SetupScene.add_mesh(data, name, images, type_)
+        js.SetupScene.add_mesh(data, name, images, type_, transform, mesh_file_name)
 
     def translate(self):
         if self.selected_mesh is not None:
@@ -414,10 +417,35 @@ class Window(QMainWindow):
 
     @QtCore.pyqtSlot(str)
     def save_state_result(self, scene_json):
-        print(scene_json)
+        self.saved_state = scene_json
 
     def load_state(self, scene_json):
-        pass
+        self.clear_all()
+        as_data = json.loads(scene_json)
+        for mesh in as_data["meshes"]:
+            self.request_add_mesh(mesh["fileName"], mesh["type"], mesh["id"], json.dumps({
+                "pos": mesh["pos"],
+                "rot": mesh["rot"],
+                "scale": mesh["scale"]
+                }))
+
+    def clear_all(self):
+        while self.list_widget.count() > 0:
+            self.list_widget.takeItem(0)
+
+        for mesh in self.meshes:
+            js.SetupScene.remove_mesh(mesh)
+
+        self.meshes = []
+        self.selected_mesh = None
+
+    def delete_mesh(self, mesh_id):
+        self.selected_mesh = None
+        if mesh_id in self.meshes:
+            index = self.meshes.index(mesh_id)
+            del self.meshes[index]
+            self.list_widget.takeItem(index)
+        js.SetupScene.remove_mesh(mesh_id)
 
     # event filter that causes mesh selection table to lose focus
     # (if it has focus)
@@ -425,8 +453,18 @@ class Window(QMainWindow):
         if event.type() == QtGui.QMouseEvent.MouseButtonPress:
             self.mesh_select_table.lose_focus()
         elif event.type() == QtGui.QKeyEvent.KeyPress:
-            if event.key() == 83:
+            if event.key() == 83:  # s[save]
                 js.SetupScene.save_state()
+            elif event.key() == 76:  # l[oad]
+                if self.saved_state is not None:
+                    self.load_state(self.saved_state)
+            elif event.key() == 67:  # c[lear]
+                self.clear_all()
+            elif event.key() == 82:  # r[emove]
+                if self.selected_mesh is not None:
+                    self.delete_mesh(self.selected_mesh)
+            else:
+                print(event.key())
         return super(Window, self).eventFilter(source, event)
 
 
