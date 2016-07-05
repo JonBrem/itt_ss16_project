@@ -188,6 +188,8 @@ class Window(QMainWindow):
         self.rotate_btn.clicked.connect(self.rotate)
         self.scale_btn.clicked.connect(self.scale)
 
+        self.win.btn_duplicate.clicked.connect(self.duplicate)
+
         self.list_widget.selectionModel().selectionChanged.connect(
             self.mesh_selection_changed)
 
@@ -237,10 +239,23 @@ class Window(QMainWindow):
                     if "name" in material["diffuseTexture"]:
                         file_name = "assets/models/" + material["diffuseTexture"]["name"]
                         if os.path.isfile(file_name):
-                            jpeg_file = "data:image/jpg;base64," + str(base64.b64encode(open(file_name, "rb").read()))[2:]
+                            jpeg_file = "data:image/jpg;base64," +\
+                                str(base64.b64encode(open(file_name, "rb").read()))[2:]
                             images[material["diffuseTexture"]["name"]] = jpeg_file
 
         js.SetupScene.add_mesh(data, name, images, type_, transform, mesh_file_name)
+
+    def duplicate(self, b=None):
+        if self.selected_mesh is not None:
+            self.request_duplicate_mesh(self.selected_mesh)
+
+    def request_duplicate_mesh(self, mesh_id):
+        name = original_name = mesh_id + "_copy"
+        index = 1
+        while name in self.meshes:
+            name = original_name + str(index)
+            index += 1
+        js.SetupScene.duplicate_mesh(mesh_id, name)
 
     def translate(self):
         if self.selected_mesh is not None:

@@ -53,6 +53,19 @@
      <string>Scale</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_duplicate">
+    <property name="geometry">
+     <rect>
+      <x>800</x>
+      <y>820</y>
+      <width>81</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Duplicate</string>
+    </property>
+   </widget>
    <widget class="QListWidget" name="list_widget">
     <property name="geometry">
      <rect>

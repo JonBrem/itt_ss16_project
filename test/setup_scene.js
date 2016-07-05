@@ -69,6 +69,22 @@ function addMesh(data, id, images, type, transform, fileName) {
     }
 }
 
+function duplicateMesh(originalMeshId, newMeshId) {
+    if (originalMeshId in meshes) {
+        removeHighlight(originalMeshId);
+        var newMesh = meshes[originalMeshId].clone("index: " + 1);
+
+        newMesh.id = newMeshId;
+        newMesh.mesh_type = meshes[originalMeshId].mesh_type;
+
+        var bbox =  newMesh.getBoundingInfo().boundingBox;
+        newMesh.position.x += bbox.extendSize.x * 2.2;
+
+        meshes[newMeshId] = newMesh;
+        python_callback.js_mesh_loaded(newMeshId);
+    }
+}
+
 function loadTransformations(mesh, transform) {
     mesh.position.x = transform["pos"][0];
     mesh.position.y = transform["pos"][1];

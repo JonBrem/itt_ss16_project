@@ -48,6 +48,11 @@ class SetupScene:
             ",'" + mesh_type + "'," + transform + ",'" + mesh_file + "');")
 
     @staticmethod
+    def duplicate_mesh(mesh_id_original, new_id):
+        SetupScene.webview.evaluateJavaScript(
+            "duplicateMesh('" + mesh_id_original + "', '" + new_id + "');")
+
+    @staticmethod
     def highlight_mesh(mesh_id):
         SetupScene.webview.evaluateJavaScript(
             "highlight('" + mesh_id + "');")

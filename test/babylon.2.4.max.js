@@ -24760,7 +24760,14 @@ var BABYLON;
             SceneLoader._registeredPlugins.push(plugin);
         };
         SceneLoader.ImportMesh = function (meshesNames, rootUrl, sceneFilename, scene, onsuccess, progressCallBack, onerror, images) {
-            BABYLON.base64ImageContainer = images;
+            if (BABYLON.base64ImageContainer == undefined) {
+                BABYLON.base64ImageContainer = {};
+            }
+            if (images != undefined && images != null) {
+                for (_key in images) {
+                    BABYLON.base64ImageContainer[_key] = images[_key];
+                }
+            }
             if (sceneFilename.substr && sceneFilename.substr(0, 1) === "/") {
                 BABYLON.Tools.Error("Wrong sceneFilename parameter");
                 return;
