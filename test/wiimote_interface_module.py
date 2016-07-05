@@ -117,6 +117,8 @@ class Wiimote(QtCore.QObject):
 
             self.__allow_button_press_once_('Plus', self.plus_button_clicked)
             self.__allow_button_press_once_('Minus', self.minus_button_clicked)
+            self.__allow_button_press_once_('One', self.one_button_clicked)
+            self.__allow_button_press_once_('Two', self.two_button_clicked)
 
             # add more buttons as seen fit
 

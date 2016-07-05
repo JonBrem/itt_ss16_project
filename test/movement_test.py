@@ -11,6 +11,7 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
 import numpy as np
 import json
+import undo_utility as undo
 import base64
 
 import js_interface_module as js
@@ -67,7 +68,16 @@ class Window(QMainWindow):
         self.initial_accelerometer_data = None
 
         self.wiimote = wii.Wiimote(50, self.monitor_width, self.monitor_height)
+        self.setup_wiimote()
 
+        self.last_angle_y_rotation = 0.0
+        self.last_scale_factor = 1.0
+
+        self.win.show()
+
+        self.undo_utility = undo.UndoUtility()
+
+    def setup_wiimote(self):
         self.wiimote.a_button_clicked.connect(
             lambda: self.on_wm_a_button_press(self.wiimote.accelerometer_data))
 
@@ -82,12 +92,8 @@ class Window(QMainWindow):
         self.wiimote.plus_button_clicked.connect(self.on_wm_plus_button_press)
         self.wiimote.minus_button_clicked.connect(self.on_wm_minus_button_press)
 
-        self.last_angle_y_rotation = 0.0
-        self.last_scale_factor = 1.0
-
-        self.win.show()
-
-        self.saved_state = None
+        self.wiimote.one_button_clicked.connect(self.undo)
+        self.wiimote.two_button_clicked.connect(self.redo)
 
     def on_wm_ir_data_update(self, data):
         x, y = data
@@ -100,6 +106,7 @@ class Window(QMainWindow):
 
     def on_wm_b_button_press(self, data):
         if self.is_first_b_button_callback:
+            js.SetupScene.save_state()
             self.initial_accelerometer_data = data
             self.is_first_b_button_callback = False
 
@@ -109,6 +116,7 @@ class Window(QMainWindow):
             self.handle_mesh_rotation_y(data)
 
     def on_wm_plus_button_press(self):
+        js.SetupScene.save_state()
         if self.selected_mesh is not None:
             js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
 
@@ -120,6 +128,7 @@ class Window(QMainWindow):
                                            self.last_scale_factor * 1.1)
 
     def on_wm_minus_button_press(self):
+        js.SetupScene.save_state()
         if self.selected_mesh is not None:
             js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
 
@@ -211,7 +220,10 @@ class Window(QMainWindow):
             for category in mesh_data['categories']:
                 self.mesh_select_table.add_item(category)
 
-    def request_add_mesh(self, mesh_file_name, type_, name=None, transform="null"):
+    def request_add_mesh(self, mesh_file_name, type_, name=None, transform="null", from_load=False):
+        if not from_load:
+            js.SetupScene.save_state()
+
         if name is None:
             name = type_
         original_name = name
@@ -250,6 +262,7 @@ class Window(QMainWindow):
             self.request_duplicate_mesh(self.selected_mesh)
 
     def request_duplicate_mesh(self, mesh_id):
+        js.SetupScene.save_state()
         name = original_name = mesh_id + "_copy"
         index = 1
         while name in self.meshes:
@@ -258,17 +271,20 @@ class Window(QMainWindow):
         js.SetupScene.duplicate_mesh(mesh_id, name)
 
     def translate(self):
+        js.SetupScene.save_state()
         if self.selected_mesh is not None:
             js.SetupScene.translate_mesh_by_id(self.selected_mesh,
                                                1, 0, 0)
 
     def rotate(self):
+        js.SetupScene.save_state()
         if self.selected_mesh is not None:
             angle = str((np.pi / 8))
             js.SetupScene.rotate_mesh_by_id(self.selected_mesh,
                                             0, 0, angle)
 
     def scale(self):
+        js.SetupScene.save_state()
         if self.selected_mesh is not None:
             js.SetupScene.scale_mesh_by_id(self.selected_mesh, 2, 1, 1)
 
@@ -455,7 +471,7 @@ class Window(QMainWindow):
 
     @QtCore.pyqtSlot(str)
     def save_state_result(self, scene_json):
-        self.saved_state = scene_json
+        self.undo_utility.add_action("todo", scene_json)
 
     def load_state(self, scene_json):
         self.clear_all()
@@ -465,7 +481,7 @@ class Window(QMainWindow):
                 "pos": mesh["pos"],
                 "rot": mesh["rot"],
                 "scale": mesh["scale"]
-                }))
+                }), True)
 
     def clear_all(self):
         while self.list_widget.count() > 0:
@@ -485,26 +501,41 @@ class Window(QMainWindow):
             self.list_widget.takeItem(index)
         js.SetupScene.remove_mesh(mesh_id)
 
+    def undo(self):
+        undone_state = self.undo_utility.undo()
+        if undone_state is not None:
+            self.load_state(undone_state["state"])
+
+    def redo(self):
+        pass
+
     # event filter that causes mesh selection table to lose focus
     # (if it has focus)
     def eventFilter(self, source, event):
         if event.type() == QtGui.QMouseEvent.MouseButtonPress:
             self.mesh_select_table.lose_focus()
-        elif event.type() == QtGui.QKeyEvent.KeyPress:
-            if event.key() == 83:  # s[save]
-                js.SetupScene.save_state()
-            elif event.key() == 76:  # l[oad]
-                if self.saved_state is not None:
-                    self.load_state(self.saved_state)
-            elif event.key() == 67:  # c[lear]
+        elif event.type() == QtGui.QKeyEvent.KeyRelease:
+            if event.key() == 67:  # c[lear]
                 self.clear_all()
             elif event.key() == 82:  # r[emove]
                 if self.selected_mesh is not None:
                     self.delete_mesh(self.selected_mesh)
             elif event.key() == 75:  # [clic]k
                 self.simulate_click()
+            # z (undo if with ctrl)
+            elif (event.key() == 90 and
+                  int(event.modifiers()) == QtCore.Qt.ControlModifier):
+                self.undo()
+            elif event.key() == 49:  # 1
+                self.set_cursor_position(100.0, 100.0, True)
+            elif event.key() == 50:  # 1
+                self.set_cursor_position(100.0, 200.0, True)
+            elif event.key() == 51:  # 1
+                self.set_cursor_position(200.0, 200.0, True)
+            elif event.key() == 52:  # 1
+                self.set_cursor_position(200.0, 100.0, True)
             else:
-                print(event.key())
+                print(event.key(), int(event.modifiers()))
         return super(Window, self).eventFilter(source, event)
 
 
