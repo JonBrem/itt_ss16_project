@@ -24,6 +24,9 @@ class Window(QMainWindow):
         self.progress = 0
         self.app = app
 
+        self.monitor_width = 1920
+        self.monitor_height = 1080
+
         QNetworkProxyFactory.setUseSystemConfiguration(True)
 
         self.win = uic.loadUi('room_design.ui')
@@ -63,12 +66,16 @@ class Window(QMainWindow):
 
         self.initial_accelerometer_data = None
 
-        self.wiimote = wii.Wiimote(50)
+        self.wiimote = wii.Wiimote(50, self.monitor_width, self.monitor_height)
 
         self.wiimote.a_button_clicked.connect(
             lambda: self.on_wm_a_button_press(self.wiimote.accelerometer_data))
+
         self.wiimote.b_button_clicked.connect(
             lambda: self.on_wm_b_button_press(self.wiimote.accelerometer_data))
+
+        self.wiimote.ir_data_updated.connect(
+            lambda: self.on_wm_ir_data_update(self.wiimote.ir_sensor_data))
 
         self.wiimote.b_button_released.connect(self.on_wm_b_button_release)
 
@@ -81,6 +88,9 @@ class Window(QMainWindow):
         self.win.show()
 
         self.saved_state = None
+
+    def on_wm_ir_data_update(self, data):
+        pass
 
     def on_wm_a_button_press(self, data):
         if self.selected_mesh is not None:
