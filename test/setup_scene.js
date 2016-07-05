@@ -55,6 +55,9 @@ function addMesh(data, id, images, type, transform, fileName) {
             // only called when this is loaded
             if (transform != null) {
                 loadTransformations(newMeshes[0], transform);
+            } else {
+                var bbox = newMeshes[0].getBoundingInfo().boundingBox;
+                newMeshes[0].position.y -= bbox.minimumWorld.y;
             }
 
             // for loading only
