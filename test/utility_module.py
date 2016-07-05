@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from collections import deque
-import numpy as np
+import pylab as pl
 
 
 class RingArray(deque):
@@ -109,3 +109,4 @@ def sort_points(points):
         sorted_points.append([x2, y2])
 
     return sorted_points
+

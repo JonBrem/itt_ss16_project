@@ -75,7 +75,7 @@ class Window(QMainWindow):
             lambda: self.on_wm_b_button_press(self.wiimote.accelerometer_data))
 
         self.wiimote.ir_data_updated.connect(
-            lambda: self.on_wm_ir_data_update(self.wiimote.ir_sensor_data))
+            lambda: self.on_wm_ir_data_update(self.wiimote.pointer_location))
 
         self.wiimote.b_button_released.connect(self.on_wm_b_button_release)
 
@@ -90,7 +90,9 @@ class Window(QMainWindow):
         self.saved_state = None
 
     def on_wm_ir_data_update(self, data):
-        pass
+        x, y = data
+
+        self.set_cursor_position(x, y, True)
 
     def on_wm_a_button_press(self, data):
         if self.selected_mesh is not None:
