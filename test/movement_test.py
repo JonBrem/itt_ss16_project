@@ -92,7 +92,7 @@ class Window(QMainWindow):
         self.wiimote.plus_button_clicked.connect(self.on_wm_plus_button_press)
         self.wiimote.minus_button_clicked.connect(self.on_wm_minus_button_press)
 
-        self.wiimote.one_button_clicked.connect(self.undo)
+        self.wiimote.one_button_clicked.connect(self.request_undo)
         self.wiimote.two_button_clicked.connect(self.redo)
 
     def on_wm_ir_data_update(self, data):
@@ -106,7 +106,7 @@ class Window(QMainWindow):
 
     def on_wm_b_button_press(self, data):
         if self.is_first_b_button_callback:
-            js.SetupScene.save_state()
+            js.SetupScene.save_state("wiimote_transform")
             self.initial_accelerometer_data = data
             self.is_first_b_button_callback = False
 
@@ -116,7 +116,7 @@ class Window(QMainWindow):
             self.handle_mesh_rotation_y(data)
 
     def on_wm_plus_button_press(self):
-        js.SetupScene.save_state()
+        js.SetupScene.save_state("wiimote_scale_up")
         if self.selected_mesh is not None:
             js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
 
@@ -128,7 +128,7 @@ class Window(QMainWindow):
                                            self.last_scale_factor * 1.1)
 
     def on_wm_minus_button_press(self):
-        js.SetupScene.save_state()
+        js.SetupScene.save_state("wiimote_scale_down")
         if self.selected_mesh is not None:
             js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
 
@@ -222,7 +222,7 @@ class Window(QMainWindow):
 
     def request_add_mesh(self, mesh_file_name, type_, name=None, transform="null", from_load=False):
         if not from_load:
-            js.SetupScene.save_state()
+            js.SetupScene.save_state("add_mesh")
 
         if name is None:
             name = type_
@@ -262,7 +262,7 @@ class Window(QMainWindow):
             self.request_duplicate_mesh(self.selected_mesh)
 
     def request_duplicate_mesh(self, mesh_id):
-        js.SetupScene.save_state()
+        js.SetupScene.save_state("duplicate_mesh")
         name = original_name = mesh_id + "_copy"
         index = 1
         while name in self.meshes:
@@ -271,20 +271,20 @@ class Window(QMainWindow):
         js.SetupScene.duplicate_mesh(mesh_id, name)
 
     def translate(self):
-        js.SetupScene.save_state()
+        js.SetupScene.save_state("translate_button")
         if self.selected_mesh is not None:
             js.SetupScene.translate_mesh_by_id(self.selected_mesh,
                                                1, 0, 0)
 
     def rotate(self):
-        js.SetupScene.save_state()
+        js.SetupScene.save_state("rotate_button")
         if self.selected_mesh is not None:
             angle = str((np.pi / 8))
             js.SetupScene.rotate_mesh_by_id(self.selected_mesh,
                                             0, 0, angle)
 
     def scale(self):
-        js.SetupScene.save_state()
+        js.SetupScene.save_state("scale_button")
         if self.selected_mesh is not None:
             js.SetupScene.scale_mesh_by_id(self.selected_mesh, 2, 1, 1)
 
@@ -469,9 +469,13 @@ class Window(QMainWindow):
         if mode == 'scale':
             self.mesh_scale = js.deserialize_list(data)
 
-    @QtCore.pyqtSlot(str)
-    def save_state_result(self, scene_json):
-        self.undo_utility.add_action("todo", scene_json)
+    @QtCore.pyqtSlot(str, str)
+    def save_state_result(self, scene_json, identifier):
+        if identifier == "undo":
+            self.undo_utility.set_first_state_at_undo(scene_json)
+            self.undo()
+        else:
+            self.undo_utility.add_action(identifier, scene_json)
 
     def load_state(self, scene_json):
         self.clear_all()
@@ -501,13 +505,20 @@ class Window(QMainWindow):
             self.list_widget.takeItem(index)
         js.SetupScene.remove_mesh(mesh_id)
 
+    def request_undo(self):
+        js.SetupScene.save_state("undo")
+
     def undo(self):
         undone_state = self.undo_utility.undo()
         if undone_state is not None:
+            print("undoing: " + undone_state["action"])
             self.load_state(undone_state["state"])
 
     def redo(self):
-        pass
+        redone_state = self.undo_utility.redo()
+        if redone_state is not None:
+            print("redoing: " + redone_state["action"])
+            self.load_state(redone_state["state"])
 
     # event filter that causes mesh selection table to lose focus
     # (if it has focus)
@@ -525,7 +536,11 @@ class Window(QMainWindow):
             # z (undo if with ctrl)
             elif (event.key() == 90 and
                   int(event.modifiers()) == QtCore.Qt.ControlModifier):
-                self.undo()
+                self.request_undo()
+            # y (redo if with ctrl)
+            elif (event.key() == 89 and
+                  int(event.modifiers()) == QtCore.Qt.ControlModifier):
+                self.redo()
             elif event.key() == 49:  # 1
                 self.set_cursor_position(100.0, 100.0, True)
             elif event.key() == 50:  # 1

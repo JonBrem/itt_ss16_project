@@ -228,7 +228,7 @@ function removeMesh(mesh_id) {
     }
 }
 
-function saveScene() {
+function saveScene(identifier) {
     scene_data = {"meshes": []};
 
     for (id in meshes) {    
@@ -241,8 +241,7 @@ function saveScene() {
             "fileName": meshes[id].modelFileName
         };
     }
-
-    python_callback.save_state_result(JSON.stringify(scene_data));
+    python_callback.save_state_result(JSON.stringify(scene_data), identifier);
 }
 
 // @TODO do we need those? click/mouse press might be enough for selecting

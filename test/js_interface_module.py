@@ -74,8 +74,8 @@ class SetupScene:
             "getTranslationRotationScale('" + mesh_id + "');")
 
     @staticmethod
-    def save_state():
-        SetupScene.webview.evaluateJavaScript("saveScene();")
+    def save_state(identifier="no identifier"):
+        SetupScene.webview.evaluateJavaScript("saveScene('" + identifier + "');")
 
     @staticmethod
     def remove_mesh(mesh_id):
