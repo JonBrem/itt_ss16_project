@@ -52,9 +52,34 @@
             "img": "assets/img/wardrobe-128.png",
             "models": [
                 {
-                    "name": "Simple Shelf",
-                    "preview": "assets/img/wardrobe-128.png",
-                    "file": "assets/models/box.babylon"
+                    "name": "Green-Door Container",
+                    "preview": "assets/img/HEBE-kontenery-na-kolkach-BP90.jpg",
+                    "file": "assets/models/cabinet_green_door.babylon"
+                },
+                {
+                    "name": "Bright Office Cabinet",
+                    "preview": "assets/img/hebe-szafka-bp110.jpg",
+                    "file": "assets/models/bright_office_cabinet.babylon"
+                },
+                {
+                    "name": "Wooden Commode",
+                    "preview": "assets/img/komoda-1.jpg",
+                    "file": "assets/models/wood_commode.babylon"
+                },
+                {
+                    "name": "Black-door Commode",
+                    "preview": "assets/img/TIRION-komoda-M106.jpg",
+                    "file": "assets/models/commode_black_door.babylon"
+                },
+                {
+                    "name": "Wooden Container",
+                    "preview": "assets/img/TIRION-szafa-M307.jpg",
+                    "file": "assets/models/container_dark_door.babylon"
+                },
+                {
+                    "name": "Dark Wardrobe",
+                    "preview": "assets/img/TIRION-szafa-M405.jpg",
+                    "file": "assets/models/dark_wardrobe.babylon"
                 }
             ]
         },

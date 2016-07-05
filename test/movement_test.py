@@ -511,13 +511,11 @@ class Window(QMainWindow):
     def undo(self):
         undone_state = self.undo_utility.undo()
         if undone_state is not None:
-            print("undoing: " + undone_state["action"])
             self.load_state(undone_state["state"])
 
     def redo(self):
         redone_state = self.undo_utility.redo()
         if redone_state is not None:
-            print("redoing: " + redone_state["action"])
             self.load_state(redone_state["state"])
 
     # event filter that causes mesh selection table to lose focus
