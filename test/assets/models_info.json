@@ -6,27 +6,27 @@
             "models": [
                 {
                     "name": "Simple Chair",
-                    "preview": "assets/img/chair-4-128.png",
+                    "preview": "assets/img/stolek-barowy-bst-9449-model-3d-fameg.jpg",
                     "file": "assets/models/chair_basic.babylon"
                 },
                 {
                     "name": "Office Chair",
-                    "preview": "assets/img/chair-4-128.png",
+                    "preview": "assets/img/fotel-ATRIA-AR-10M.jpg",
                     "file": "assets/models/red_office_chair.babylon"
                 },
                 {
                     "name": "Dark Chair",
-                    "preview": "assets/img/chair-4-128.png",
+                    "preview": "assets/img/krzeslo-a-0710-model-3d-fameg-modern.jpg",
                     "file": "assets/models/dark_chair.babylon"
                 },
                 {
                     "name": "Conference Chair",
-                    "preview": "assets/img/chair-4-128.png",
+                    "preview": "assets/img/krzeslo-konferecyjne-set-up-k3n.jpg",
                     "file": "assets/models/conference_chair.babylon"
                 },
                 {
                     "name": "Comfy High Chair",
-                    "preview": "assets/img/chair-4-128.png",
+                    "preview": "assets/img/stolek-barowy-bst-9608-model-3d-fameg.jpg",
                     "file": "assets/models/comfy_high_chair.babylon"
                 }
             ]

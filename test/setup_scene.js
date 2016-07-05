@@ -205,7 +205,7 @@ function getTranslationRotationScale(mesh_id) {
 function removeMesh(mesh_id) {
     if (mesh_id in meshes) {
         meshes[mesh_id].dispose();
-        delete meshes["mesh_id"];
+        delete meshes[mesh_id];
     }
 }
 
