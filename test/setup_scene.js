@@ -2,14 +2,27 @@ var canvas;
 var engine;
 var scene;
 
+var camera;
+var startingPoint;
+
+var ground;
+
+var selectedPlaneName = "xz";
+var selectedPlane = null;
+var selectedPlaneMaterial;
+var isMouseDown = false;
+
+var scaleInitialYBottom = undefined;
+
 var meshes = {};
+var highlightedMesh;
 
 var createScene = function() {
     // create a basic BJS Scene object
     var scene = new BABYLON.Scene(engine);
 
     // create a FreeCamera, and set its position to (x:0, y:5, z:-10)
-    var camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5,-10), scene);
+    camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5,-10), scene);
 
     // target the camera to scene origin
     camera.setTarget(BABYLON.Vector3.Zero());
@@ -21,7 +34,9 @@ var createScene = function() {
     var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), scene);
 
     // create a built-in "ground" shape; its constructor takes the same 5 params as the sphere's one
-    var ground = BABYLON.Mesh.CreateGround('ground1', 6, 6, 2, scene);
+    ground = BABYLON.Mesh.CreateGround('ground1', 6, 6, 2, scene);
+    selectedPlaneMaterial = new BABYLON.StandardMaterial("selectedPlaneMaterial", scene);
+    selectedPlaneMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
 
     // return the created scene
     return scene;
@@ -40,8 +55,10 @@ jQuery(document).ready(function($) {
         engine.resize();
     });
 
-    window.addEventListener("click", onClick);
+    window.addEventListener("mousedown", onMouseDown);
     
+    canvas.addEventListener("mouseup", onMouseUp, false);
+    canvas.addEventListener("mousemove", onMouseMove, false);
 });
 
 
@@ -159,6 +176,11 @@ function scaleMeshByID(id, factorX, factorY, factorZ) {
     if(id in meshes) {
         if(factorX == 1 && factorY == 1 && factorZ == 1) return;
 
+        // to keep the bottom equal (scale towards top, not from center out)
+        if (scaleInitialYBottom == undefined || scaleInitialYBottom == null) {
+            scaleInitialYBottom = meshes[id].getBoundingInfo().boundingBox.minimumWorld.y;
+        }
+
         x1 = '';
         y1 = '';
         z1 = '';
@@ -176,26 +198,32 @@ function scaleMeshByID(id, factorX, factorY, factorZ) {
         meshes[id].scaling.y = factorY;
         meshes[id].scaling.z = factorZ;
 
+        var min_y_after = meshes[id].getBoundingInfo().boundingBox.minimumWorld.y;
+
+        meshes[id].position.y += scaleInitialYBottom - min_y_after;
+
         python_callback.on_js_object_manipulation_performed(id, 'scaled',
                                                             x1, y1, z1);
     }
 }
 
-// https://gamedevacademy.org/grabbing-3d-objects-with-the-mouse-babylonjs-series-part-11/
-function onClick(evt) {
-    var pickResult = scene.pick(evt.clientX, evt.clientY);
-    if (pickResult.hit) {
-        python_callback.on_object_clicked(pickResult.pickedMesh.id);
-    } else {
-        python_callback.on_object_clicked(null);
-    }
+function onScaleEnd() {
+    scaleInitialYBottom = undefined;
 }
 
-function highlight(obj_id) {
+function highlight(obj_id, fromClick) {
     if (obj_id in meshes) {
         // http://www.babylonjs-playground.com/#E51MJ#8
         meshes[obj_id].outlineWidth = 0.05;
         meshes[obj_id].renderOutline = true;
+
+        highlightedMesh = meshes[obj_id];
+
+        if(fromClick) {
+            setTimeout(function () {
+                camera.detachControl(canvas);
+            }, 0);
+        }
     }
 }
 
@@ -204,6 +232,13 @@ function removeHighlight(obj_id) {
         // http://www.babylonjs-playground.com/#E51MJ#8
         meshes[obj_id].outlineWidth = 0.0;
         meshes[obj_id].renderOutline = false;
+
+        if (meshes[obj_id] == highlightedMesh) {
+            highlightedMesh = null;
+
+            camera.attachControl(canvas);
+            startingPoint = null;
+        }
     }
 }
 
@@ -244,12 +279,122 @@ function saveScene(identifier) {
     python_callback.save_state_result(JSON.stringify(scene_data), identifier);
 }
 
-// @TODO do we need those? click/mouse press might be enough for selecting
-// maybe we'll need it if we want to drag things on screen...
-function onMove(evt) {
-
+function selectPlane(which) {
+    selectedPlaneName = which;
 }
 
-function onRelease(evt) {
+// https://gamedevacademy.org/grabbing-3d-objects-with-the-mouse-babylonjs-series-part-11/
+function onMouseDown(evt) {
+    // 0 == left button. apparently also the accepted way to do this (without constants etc.)
+    // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
+    if (evt.button == 0) {
+        isMouseDown = true;
 
+        var pickResult = scene.pick(evt.clientX, evt.clientY);
+        if (pickResult.hit) {
+            python_callback.on_object_clicked(pickResult.pickedMesh.id);
+        } else {
+            python_callback.on_object_clicked(null);
+        }
+    }
+}
+
+function selectPlane(which) {
+    selectedPlaneName = which;
+}
+
+function createPlaneForSelection() {
+    if (selectedPlane != null && selectedPlane != undefined) {
+        selectedPlane.dispose();
+    }
+    selectedPlane = BABYLON.Mesh.CreateGround('ground2', 200, 200, 2, scene);
+    selectedPlane.material = selectedPlaneMaterial;
+
+    var bbox = highlightedMesh.getBoundingInfo().boundingBox;
+
+    var camera_pos = camera.position;
+    var mesh_pos = bbox.center;
+
+    selectedPlane.position.x = mesh_pos.x;
+    selectedPlane.position.y = mesh_pos.y;
+    selectedPlane.position.z = mesh_pos.z;
+
+    if (selectedPlaneName == "xz") {
+        if (camera_pos.y < mesh_pos.y) {
+            selectedPlane.rotation.x = Math.PI;
+        }
+    } else if (selectedPlaneName == "xy") {
+        selectedPlane.rotation.x = Math.PI * 3/2;
+        if (camera_pos.z > mesh_pos.z) {
+            selectedPlane.rotation.y = Math.PI;
+        }
+    } else { // selectedPlaneName == "yz"
+        selectedPlane.rotation.x = Math.PI * 3/2;
+        if (camera_pos.x < mesh_pos.x) {
+            selectedPlane.rotation.y = Math.PI * 1/2;
+        } else {
+            selectedPlane.rotation.y = Math.PI * 3/2;
+        }
+    }
+
+    selectedPlane.visibility = 0.2;
+}
+
+function onMouseUp() {
+    isMouseDown = false;
+
+    if (selectedPlane != null && selectedPlane != undefined) {
+        selectedPlane.dispose();
+    }
+
+    if (startingPoint) {
+        camera.attachControl(canvas);
+        startingPoint = null;
+        return;
+    }
+}
+
+function onMouseMove(evt) {
+    if (isMouseDown && highlightedMesh != null && !startingPoint) {
+        python_callback.on_js_obj_drag_start(highlightedMesh.id);
+        createPlaneForSelection();
+        startingPoint = highlightedMesh.getBoundingInfo().boundingBox.center;
+    }
+
+    if (!startingPoint) {
+        return;
+    }
+
+    var current = getPositionAlongSelectedPlane(evt);
+
+    if (!current) {
+        return;
+    }
+
+    var diff = current.subtract(startingPoint);
+    highlightedMesh.position.addInPlace(diff);
+
+    startingPoint = current;
+}
+
+
+function getPositionAlongSelectedPlane(evt) {
+    // Use a predicate to get position on the ground
+    var pickinfo = scene.pick(scene.pointerX, scene.pointerY, function (mesh) { return mesh == selectedPlane; });
+    if (pickinfo.hit) {
+        // strangely, the point is not always _in_ the plane ._.
+        var point = pickinfo.pickedPoint;
+
+        if (selectedPlaneName == "xy") {
+            point.z = selectedPlane.position.z;
+        } else if (selectedPlaneName == "xz") {
+            point.y = selectedPlane.position.y;
+        } else { // selectedPlaneName == "yz"
+            point.x = selectedPlane.position.x;
+        }
+
+        return point;
+    }
+
+    return null;
 }

@@ -53,9 +53,9 @@ class SetupScene:
             "duplicateMesh('" + mesh_id_original + "', '" + new_id + "');")
 
     @staticmethod
-    def highlight_mesh(mesh_id):
+    def highlight_mesh(mesh_id, from_click):
         SetupScene.webview.evaluateJavaScript(
-            "highlight('" + mesh_id + "');")
+            "highlight('" + mesh_id + "'," + str(from_click).lower() + ");")
 
     @staticmethod
     def remove_highlight_from_mesh(mesh_id):
@@ -80,6 +80,14 @@ class SetupScene:
     @staticmethod
     def remove_mesh(mesh_id):
         SetupScene.webview.evaluateJavaScript("removeMesh('" + mesh_id + "');")
+
+    @staticmethod
+    def set_selected_plane(which):
+        SetupScene.webview.evaluateJavaScript("selectPlane('" + which + "');")
+
+    @staticmethod
+    def on_scale_end():
+        SetupScene.webview.evaluateJavaScript("onScaleEnd();")
 
 
 def deserialize_list(js_list_as_string):

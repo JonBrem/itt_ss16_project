@@ -59,6 +59,7 @@ class Window(QMainWindow):
         self.mesh_scale = []
 
         self.is_first_b_button_callback = True
+        self.wm_current_a_button_state = False
 
         self.address_line_edit = self.win.line_edit_address
         self.connect_btn = self.win.btn_connect
@@ -76,6 +77,9 @@ class Window(QMainWindow):
         self.win.show()
 
         self.undo_utility = undo.UndoUtility()
+
+        self.selected_plane = "xz"
+        self.select_plane(self.selected_plane)
 
     def setup_wiimote(self):
         self.wiimote.a_button_clicked.connect(
@@ -121,11 +125,17 @@ class Window(QMainWindow):
         self.set_cursor_position(x, y, True)
 
     def on_wm_a_button_press(self, data):
+        if self.wm_current_a_button_state:
+            return
+        self.wm_current_a_button_state = True
         self.simulate_mouse_press()
         if self.selected_mesh is not None:
             self.initial_accelerometer_data = data
 
     def on_wm_a_button_release(self):
+        if self.wm_current_a_button_state is False:
+            return
+        self.wm_current_a_button_state = False
         self.simulate_mouse_release()
 
     def on_wm_b_button_press(self, data):
@@ -211,6 +221,7 @@ class Window(QMainWindow):
 
                 self.last_scale_factor = 0.1
 
+        js.SetupScene.on_scale_end()
         self.is_first_b_button_callback = True
 
     def connect_wiimote(self):
@@ -243,6 +254,10 @@ class Window(QMainWindow):
         # @TODO: should do this for all buttons etc. except the mesh table
         self.wv.installEventFilter(self)
         self.win.installEventFilter(self)
+
+        self.win.x_y_plane_btn.clicked.connect(lambda: self.select_plane("xy"))
+        self.win.x_z_plane_btn.clicked.connect(lambda: self.select_plane("xz"))
+        self.win.y_z_plane_btn.clicked.connect(lambda: self.select_plane("yz"))
 
     def read_mesh_data(self, file_path):
         with open(file_path, 'r') as mesh_data_file:
@@ -318,6 +333,19 @@ class Window(QMainWindow):
         if self.selected_mesh is not None:
             js.SetupScene.scale_mesh_by_id(self.selected_mesh, 2, 1, 1)
 
+    def select_plane(self, which):
+        self.selected_plane = which
+
+        data = {"xy": [False, True, True],
+                "xz": [True, False, True],
+                "yz": [True, True, False], }
+
+        self.win.x_y_plane_btn.setEnabled(data[which][0])
+        self.win.x_z_plane_btn.setEnabled(data[which][1])
+        self.win.y_z_plane_btn.setEnabled(data[which][2])
+
+        js.SetupScene.set_selected_plane(which)
+
     def viewSource(self):
         """
         never called?
@@ -370,7 +398,7 @@ class Window(QMainWindow):
         else:
             self.de_select_meshes(False)
 
-    def select_mesh(self, obj_id, update_list=True):
+    def select_mesh(self, obj_id, update_list=True, from_click=False):
         was_selected = self.selected_mesh == obj_id
 
         self.selected_mesh = obj_id
@@ -392,7 +420,7 @@ class Window(QMainWindow):
                 selection_model.select(new_selection,
                                        QtCore.QItemSelectionModel.Select)
 
-        js.SetupScene.highlight_mesh(obj_id)
+        js.SetupScene.highlight_mesh(obj_id, from_click)
 
     def de_select_meshes(self, from_js=True):
         # @todo: do we ever need that param??
@@ -491,10 +519,14 @@ class Window(QMainWindow):
             s += z
 
     @QtCore.pyqtSlot(str)
+    def on_js_obj_drag_start(self, mesh_id):
+        js.SetupScene.save_state("js_drag_translate")
+
+    @QtCore.pyqtSlot(str)
     def on_object_clicked(self, obj_id):
         if obj_id in self.meshes:
-            self.select_mesh(obj_id)
-        elif len(obj_id) == 0:  # == None; None does not work from JS
+            self.select_mesh(obj_id, True, True)
+        else:  # == None; None does not work from JS
             self.de_select_meshes()
 
     @QtCore.pyqtSlot(str)
@@ -588,11 +620,11 @@ class Window(QMainWindow):
             elif event.key() == 75:  # [clic]k
                 self.simulate_click()
             # z (undo if with ctrl)
-            elif (event.key() == 90 and
+            elif (source == self.win and event.key() == 90 and
                   int(event.modifiers()) == QtCore.Qt.ControlModifier):
                 self.request_undo()
             # y (redo if with ctrl)
-            elif (event.key() == 89 and
+            elif (source == self.win and event.key() == 89 and
                   int(event.modifiers()) == QtCore.Qt.ControlModifier):
                 self.redo()
             elif event.key() == 49:  # 1
@@ -604,7 +636,8 @@ class Window(QMainWindow):
             elif event.key() == 52:  # 1
                 self.set_cursor_position(200.0, 100.0, True)
             else:
-                print(event.key(), int(event.modifiers()))
+                pass
+                #  print(event.key(), int(event.modifiers()))
         return super(Window, self).eventFilter(source, event)
 
 
