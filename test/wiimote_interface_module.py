@@ -205,6 +205,8 @@ class Wiimote(QtCore.QObject):
         x /= z
         y /= z
 
+        y = self.height - y
+
         self.pointer_location = (x, y)
 
         self.ir_data_updated.emit()

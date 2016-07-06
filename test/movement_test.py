@@ -98,9 +98,12 @@ class Window(QMainWindow):
     def on_wm_ir_data_update(self, data):
         x, y = data
 
+        print('ir lights found')
+
         self.set_cursor_position(x, y, True)
 
     def on_wm_a_button_press(self, data):
+        self.simulate_click()
         if self.selected_mesh is not None:
             self.initial_accelerometer_data = data
 
