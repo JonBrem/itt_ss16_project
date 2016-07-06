@@ -103,9 +103,34 @@
             "img": "assets/img/tv-128.png",
             "models": [
                 {
-                    "name": "TV",
+                    "name": "Computer",
                     "preview": "assets/img/tv-128.png",
-                    "file": "assets/models/box.babylon"
+                    "file": "assets/models/computer_tower.babylon"
+                },
+                {
+                    "name": "Laptop",
+                    "preview": "assets/img/tv-128.png",
+                    "file": "assets/models/laptop.babylon"
+                },
+                {
+                    "name": "Monitor",
+                    "preview": "assets/img/tv-128.png",
+                    "file": "assets/models/monitor.babylon"
+                },
+                {
+                    "name": "Coffe Machine",
+                    "preview": "assets/img/tv-128.png",
+                    "file": "assets/models/coffee_machine.babylon"
+                },
+                {
+                    "name": "Microwave",
+                    "preview": "assets/img/tv-128.png",
+                    "file": "assets/models/microwave.babylon"
+                },
+                {
+                    "name": "Old TV",
+                    "preview": "assets/img/tv-128.png",
+                    "file": "assets/models/old_tv.babylon"
                 }
             ]
         },
