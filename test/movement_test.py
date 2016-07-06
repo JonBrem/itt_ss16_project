@@ -80,6 +80,7 @@ class Window(QMainWindow):
     def setup_wiimote(self):
         self.wiimote.a_button_clicked.connect(
             lambda: self.on_wm_a_button_press(self.wiimote.accelerometer_data))
+        self.wiimote.a_button_released.connect(self.on_wm_a_button_release)
 
         self.wiimote.b_button_clicked.connect(
             lambda: self.on_wm_b_button_press(self.wiimote.accelerometer_data))
@@ -101,11 +102,15 @@ class Window(QMainWindow):
         print('ir lights found')
 
         self.set_cursor_position(x, y, True)
+        self.simulate_mouse_move()
 
     def on_wm_a_button_press(self, data):
-        self.simulate_click()
+        self.simulate_mouse_press()
         if self.selected_mesh is not None:
             self.initial_accelerometer_data = data
+
+    def on_wm_a_button_release(self, data):
+        self.simulate_mouse_release()
 
     def on_wm_b_button_press(self, data):
         if self.is_first_b_button_callback:
@@ -398,21 +403,42 @@ class Window(QMainWindow):
         rel_cursor = self.get_cursor_position(False)
         abs_cursor = self.get_cursor_position(True)
 
+        for ev_type in (QtGui.QMouseEvent.MouseButtonPress,
+                        QtGui.QMouseEvent.MouseButtonRelease):
+            self.simulate_left_mouse_event(ev_type, rel_cursor, abs_cursor)
+
+    def simulate_mouse_press(self):
+        rel_cursor = self.get_cursor_position(False)
+        abs_cursor = self.get_cursor_position(True)
+
+        self.simulate_left_mouse_event(QtGui.QMouseEvent.MouseButtonPress, rel_cursor, abs_cursor)
+
+    def simulate_mouse_release(self):
+        rel_cursor = self.get_cursor_position(False)
+        abs_cursor = self.get_cursor_position(True)
+
+        self.simulate_left_mouse_event(QtGui.QMouseEvent.MouseButtonRelease, rel_cursor, abs_cursor)
+
+    def simulate_mouse_move(self):
+        rel_cursor = self.get_cursor_position(False)
+        abs_cursor = self.get_cursor_position(True)
+
+        self.simulate_left_mouse_event(QtGui.QMouseEvent.MouseMove, rel_cursor, abs_cursor)
+
+    def simulate_left_mouse_event(self, ev_type, rel_cursor, abs_cursor):
         clicked_child = self.win.childAt(rel_cursor)
         if clicked_child is None:
             clicked_child = self.win
-        for ev_type in (QtGui.QMouseEvent.MouseButtonPress,
-                        QtGui.QMouseEvent.MouseButtonRelease):
-            global_child_coords = clicked_child.mapToGlobal(QtCore.QPoint(0, 0))
-            pos = QtCore.QPoint(abs_cursor.x() - global_child_coords.x(),
-                                abs_cursor.y() - global_child_coords.y())
-            event = QtGui.QMouseEvent(ev_type,
-                                      pos,
-                                      abs_cursor,
-                                      QtCore.Qt.LeftButton,
-                                      QtCore.Qt.LeftButton,
-                                      QtCore.Qt.NoModifier)
-            self.app.postEvent(clicked_child, event)
+        global_child_coords = clicked_child.mapToGlobal(QtCore.QPoint(0, 0))
+        pos = QtCore.QPoint(abs_cursor.x() - global_child_coords.x(),
+                            abs_cursor.y() - global_child_coords.y())
+        event = QtGui.QMouseEvent(ev_type,
+                                  pos,
+                                  abs_cursor,
+                                  QtCore.Qt.LeftButton,
+                                  QtCore.Qt.LeftButton,
+                                  QtCore.Qt.NoModifier)
+        self.app.postEvent(clicked_child, event)
 
     @QtCore.pyqtSlot(str)
     def js_mesh_loaded(self, mesh_name):

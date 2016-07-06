@@ -111,7 +111,8 @@ class Wiimote(QtCore.QObject):
 
                 self.accelerometer_data = [ret_x, ret_y, ret_z]
 
-            self.__allow_button_press_once_('A', self.a_button_clicked)
+            self.__allow_button_hold_('A', self.a_button_clicked,
+                                      self.a_button_released)
             self.__allow_button_hold_('B', self.b_button_clicked,
                                       self.b_button_released)
 
