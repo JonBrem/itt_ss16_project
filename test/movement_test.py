@@ -96,17 +96,22 @@ class Window(QMainWindow):
         self.wiimote.one_button_clicked.connect(self.request_undo)
         self.wiimote.two_button_clicked.connect(self.redo)
 
-        self.wiimote.up_button_clicked.connect(self.on_wm_up_button_press)
-        self.wiimote.up_button_released.connect(self.on_wm_up_button_release)
-
-        self.wiimote.down_button_clicked.connect(self.on_wm_down_button_press)
-        self.wiimote.down_button_released.connect(self.on_wm_down_button_release)
-
-        self.wiimote.left_button_clicked.connect(self.on_wm_left_button_press)
-        self.wiimote.left_button_released.connect(self.on_wm_left_button_release)
-
-        self.wiimote.right_button_clicked.connect(self.on_wm_right_button_press)
-        self.wiimote.right_button_released.connect(self.on_wm_right_button_release)
+        self.wiimote.up_button_clicked.connect(
+            lambda: self.on_wm_dpad_button_press(Qt.Key_Up))
+        self.wiimote.up_button_released.connect(
+            lambda: self.on_wm_dpad_button_release(Qt.Key_Up))
+        self.wiimote.down_button_clicked.connect(
+            lambda: self.on_wm_dpad_button_press(Qt.Key_Down))
+        self.wiimote.down_button_released.connect(
+            lambda: self.on_wm_dpad_button_release(Qt.Key_Down))
+        self.wiimote.left_button_clicked.connect(
+            lambda: self.on_wm_dpad_button_press(Qt.Key_Left))
+        self.wiimote.left_button_released.connect(
+            lambda: self.on_wm_dpad_button_release(Qt.Key_Left))
+        self.wiimote.right_button_clicked.connect(
+            lambda: self.on_wm_dpad_button_press(Qt.Key_Right))
+        self.wiimote.right_button_released.connect(
+            lambda: self.on_wm_dpad_button_release(Qt.Key_Right))
 
     def on_wm_ir_data_update(self, data):
         x, y = data
@@ -134,29 +139,11 @@ class Window(QMainWindow):
             self.handle_mesh_scaling_fine(data)
             self.handle_mesh_rotation_y(data)
 
-    def on_wm_up_button_press(self):
-        self.simulate_camera_event(QtGui.QKeyEvent.KeyPress, Qt.Key_Up)
+    def on_wm_dpad_button_press(self, button):
+        self.simulate_camera_event(QtGui.QKeyEvent.KeyPress, button)
 
-    def on_wm_up_button_release(self):
-        self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, Qt.Key_Up)
-
-    def on_wm_down_button_press(self):
-        self.simulate_camera_event(QtGui.QKeyEvent.KeyPress, Qt.Key_Down)
-
-    def on_wm_down_button_release(self):
-        self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, Qt.Key_Down)
-
-    def on_wm_left_button_press(self):
-        self.simulate_camera_event(QtGui.QKeyEvent.KeyPress, Qt.Key_Left)
-
-    def on_wm_left_button_release(self):
-        self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, Qt.Key_Left)
-
-    def on_wm_right_button_press(self):
-        self.simulate_camera_event(QtGui.QKeyEvent.KeyPress, Qt.Key_Right)
-
-    def on_wm_right_button_release(self):
-        self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, Qt.Key_Right)
+    def on_wm_dpad_button_release(self, button):
+        self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, button)
 
     def on_wm_plus_button_press(self):
         js.SetupScene.save_state("wiimote_scale_up")
