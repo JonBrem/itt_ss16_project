@@ -116,6 +116,18 @@ class Wiimote(QtCore.QObject):
             self.__allow_button_hold_('B', self.b_button_clicked,
                                       self.b_button_released)
 
+            self.__allow_button_hold_('Up', self.up_button_clicked,
+                                      self.up_button_released)
+
+            self.__allow_button_hold_('Down', self.down_button_clicked,
+                                      self.down_button_released)
+
+            self.__allow_button_hold_('Left', self.left_button_clicked,
+                                      self.left_button_released)
+
+            self.__allow_button_hold_('Right', self.right_button_clicked,
+                                      self.right_button_released)
+
             self.__allow_button_press_once_('Plus', self.plus_button_clicked)
             self.__allow_button_press_once_('Minus', self.minus_button_clicked)
             self.__allow_button_press_once_('One', self.one_button_clicked)
@@ -153,60 +165,11 @@ class Wiimote(QtCore.QObject):
         x_values, y_values = \
             self.__get_moving_averages_points(um.sort_points(points))
 
-        sx1, sy1 = x_values[0], y_values[0]  # tl
-        sx2, sy2 = x_values[1], y_values[1]  # bl
-        sx3, sy3 = x_values[2], y_values[2]  # br
-        sx4, sy4 = x_values[3], y_values[3]  # tr
-
-        source_points_123 = pl.matrix([[sx1, sx2, sx3],
-                                       [sy1, sy2, sy3],
-                                       [1, 1, 1]])
-        source_point_4 = [[sx4],
-                          [sy4],
-                          [1]]
-
-        scale_to_source = pl.solve(source_points_123, source_point_4)
-
-        l, m, t = [float(x) for x in scale_to_source]
-
-        unit_to_source = pl.matrix([[l * sx1, m * sx2, t * sx3],
-                                    [l * sy1, m * sy2, t * sy3],
-                                    [l, m, t]])
-
-        dx1, dy1 = 0, 0
-        dx2, dy2 = 0, self.monitor_height
-        dx3, dy3 = self.monitor_width, self.monitor_height
-        dx4, dy4 = self.monitor_width, 0
-
-        dest_points_123 = pl.matrix([[dx1, dx2, dx3],
-                                     [dy1, dy2, dy3],
-                                     [1, 1, 1]])
-
-        dest_point_4 = pl.matrix([[dx4],
-                                  [dy4],
-                                  [1]])
-
-        scale_to_dest = pl.solve(dest_points_123, dest_point_4)
-
-        l, m, t = [float(x) for x in scale_to_dest]
-
-        unit_to_dest = pl.matrix([[l * dx1, m * dx2, t * dx3],
-                                  [l * dy1, m * dy2, t * dy3],
-                                  [l, m, t]])
-
-        source_to_unit = pl.inv(unit_to_source)
-
-        source_to_dest = unit_to_dest @ source_to_unit
-
-        x, y, z = [float(w) for w in (source_to_dest @ pl.matrix([
-            [self.width/2],
-            [self.height/2],
-            [1]]))]
-
-        x /= z
-        y /= z
-
-        y = self.height - y
+        x, y = um.get_projection_transformed_point(x_values, y_values,
+                                                   self.monitor_width,
+                                                   self.monitor_height,
+                                                   self.width / 2,
+                                                   self.height / 2)
 
         self.pointer_location = (x, y)
 
@@ -227,6 +190,3 @@ class Wiimote(QtCore.QObject):
                                      len(self.ring_ir_sensor_samples))
 
         return temp_x_values, temp_y_values
-
-
-

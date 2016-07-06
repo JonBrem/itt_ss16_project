@@ -96,20 +96,31 @@ class Window(QMainWindow):
         self.wiimote.one_button_clicked.connect(self.request_undo)
         self.wiimote.two_button_clicked.connect(self.redo)
 
+        self.wiimote.up_button_clicked.connect(self.on_wm_up_button_press)
+        self.wiimote.up_button_released.connect(self.on_wm_up_button_release)
+
+        self.wiimote.down_button_clicked.connect(self.on_wm_down_button_press)
+        self.wiimote.down_button_released.connect(self.on_wm_down_button_release)
+
+        self.wiimote.left_button_clicked.connect(self.on_wm_left_button_press)
+        self.wiimote.left_button_released.connect(self.on_wm_left_button_release)
+
+        self.wiimote.right_button_clicked.connect(self.on_wm_right_button_press)
+        self.wiimote.right_button_released.connect(self.on_wm_right_button_release)
+
     def on_wm_ir_data_update(self, data):
         x, y = data
 
         print('ir lights found')
 
         self.set_cursor_position(x, y, True)
-        self.simulate_mouse_move()
 
     def on_wm_a_button_press(self, data):
         self.simulate_mouse_press()
         if self.selected_mesh is not None:
             self.initial_accelerometer_data = data
 
-    def on_wm_a_button_release(self, data):
+    def on_wm_a_button_release(self):
         self.simulate_mouse_release()
 
     def on_wm_b_button_press(self, data):
@@ -122,6 +133,30 @@ class Window(QMainWindow):
             js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
             self.handle_mesh_scaling_fine(data)
             self.handle_mesh_rotation_y(data)
+
+    def on_wm_up_button_press(self):
+        self.simulate_camera_event(QtGui.QKeyEvent.KeyPress, Qt.Key_Up)
+
+    def on_wm_up_button_release(self):
+        self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, Qt.Key_Up)
+
+    def on_wm_down_button_press(self):
+        self.simulate_camera_event(QtGui.QKeyEvent.KeyPress, Qt.Key_Down)
+
+    def on_wm_down_button_release(self):
+        self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, Qt.Key_Down)
+
+    def on_wm_left_button_press(self):
+        self.simulate_camera_event(QtGui.QKeyEvent.KeyPress, Qt.Key_Left)
+
+    def on_wm_left_button_release(self):
+        self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, Qt.Key_Left)
+
+    def on_wm_right_button_press(self):
+        self.simulate_camera_event(QtGui.QKeyEvent.KeyPress, Qt.Key_Right)
+
+    def on_wm_right_button_release(self):
+        self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, Qt.Key_Right)
 
     def on_wm_plus_button_press(self):
         js.SetupScene.save_state("wiimote_scale_up")
@@ -439,6 +474,11 @@ class Window(QMainWindow):
                                   QtCore.Qt.LeftButton,
                                   QtCore.Qt.NoModifier)
         self.app.postEvent(clicked_child, event)
+
+    def simulate_camera_event(self, type, key):
+        event = QtGui.QKeyEvent(type, key, QtCore.Qt.NoModifier)
+
+        self.app.postEvent(self.wv, event)
 
     @QtCore.pyqtSlot(str)
     def js_mesh_loaded(self, mesh_name):
