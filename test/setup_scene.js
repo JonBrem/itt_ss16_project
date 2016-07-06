@@ -4,6 +4,7 @@ var scene;
 
 var camera;
 var startingPoint;
+var dragBugfixActive = false;
 
 var ground;
 
@@ -222,6 +223,8 @@ function highlight(obj_id, fromClick) {
         if(fromClick) {
             setTimeout(function () {
                 camera.detachControl(canvas);
+                dragBugfixActive = true;
+                startingPoint = highlightedMesh.getBoundingInfo().boundingBox.center;
             }, 0);
         }
     }
@@ -355,10 +358,10 @@ function onMouseUp() {
 }
 
 function onMouseMove(evt) {
-    if (isMouseDown && highlightedMesh != null && !startingPoint) {
+    if (isMouseDown && highlightedMesh != null && dragBugfixActive) {
+        dragBugfixActive = false;
         python_callback.on_js_obj_drag_start(highlightedMesh.id);
         createPlaneForSelection();
-        startingPoint = highlightedMesh.getBoundingInfo().boundingBox.center;
     }
 
     if (!startingPoint) {
