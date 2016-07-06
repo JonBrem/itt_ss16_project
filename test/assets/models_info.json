@@ -36,14 +36,29 @@
             "img": "assets/img/table-128.png",
             "models": [
                 {
-                    "name": "Simple Table",
-                    "preview": "assets/img/table-128.png",
-                    "file": "assets/models/box.babylon"
+                    "name": "Curved Bright Table",
+                    "preview": "assets/img/HEBE-biurko-z-kontenerem-BP33.jpg",
+                    "file": "assets/models/white_green_round_table.babylon"
                 },
                 {
-                    "name": "Old-Timey Table",
-                    "preview": "assets/img/table-128.png",
-                    "file": "assets/models/box.babylon"
+                    "name": "Brown Round Table",
+                    "preview": "assets/img/stol-jadalniany-2.jpg",
+                    "file": "assets/models/small_round_brown_table.babylon"
+                },
+                {
+                    "name": "Long Brown Table",
+                    "preview": "assets/img/stol-jadalniany-3.jpg",
+                    "file": "assets/models/longer_brown_round_table.babylon"
+                },
+                {
+                    "name": "Modern Wooden Table",
+                    "preview": "assets/img/TIRION-biurko-M112.jpg",
+                    "file": "assets/models/modern_wooden_table.babylon"
+                },
+                {
+                    "name": "School Desk",
+                    "preview": "assets/img/biurko-HEBE-proste-BL02.jpg",
+                    "file": "assets/models/school_desk.babylon"
                 }
             ]
         },
