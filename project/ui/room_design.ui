@@ -7,65 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>1300</width>
-    <height>900</height>
+    <height>836</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="btn_translate">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>820</y>
-      <width>81</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Translate</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_rotate">
-    <property name="geometry">
-     <rect>
-      <x>620</x>
-      <y>820</y>
-      <width>81</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Rotate</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_scale">
-    <property name="geometry">
-     <rect>
-      <x>710</x>
-      <y>820</y>
-      <width>81</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Scale</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_duplicate">
-    <property name="geometry">
-     <rect>
-      <x>800</x>
-      <y>820</y>
-      <width>81</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Duplicate</string>
-    </property>
-   </widget>
    <widget class="QListWidget" name="list_widget">
     <property name="geometry">
      <rect>

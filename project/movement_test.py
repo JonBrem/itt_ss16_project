@@ -39,12 +39,6 @@ class Window(QMainWindow):
         js.SetupScene.apply_callback('python_callback', self)
 
         self.wv.load(url)
-        self.wv.titleChanged.connect(self.adjustTitle)
-        self.wv.loadFinished.connect(self.finishLoading)
-
-        self.translate_btn = self.win.btn_translate
-        self.rotate_btn = self.win.btn_rotate
-        self.scale_btn = self.win.btn_scale
 
         self.list_widget = self.win.list_widget
         self.mesh_select_table = None
@@ -162,7 +156,7 @@ class Window(QMainWindow):
 
     def on_wm_minus_button_press(self):
         if self.selected_mesh is not None:
-            # save state?
+            js.SetupScene.save_state("remove_mesh")
             self.delete_mesh(self.selected_mesh)
 
     def handle_mesh_scaling_fine(self, data):
@@ -218,12 +212,6 @@ class Window(QMainWindow):
             print(item.text(0) + ' selected')
 
     def setup_ui(self):
-        self.translate_btn.clicked.connect(self.translate)
-        self.rotate_btn.clicked.connect(self.rotate)
-        self.scale_btn.clicked.connect(self.scale)
-
-        self.win.btn_duplicate.clicked.connect(self.duplicate)
-
         self.list_widget.selectionModel().selectionChanged.connect(
             self.mesh_selection_changed)
 
@@ -249,7 +237,8 @@ class Window(QMainWindow):
             for category in mesh_data['categories']:
                 self.mesh_select_table.add_item(category)
 
-    def request_add_mesh(self, mesh_file_name, type_, name=None, transform="null", from_load=False):
+    def request_add_mesh(self, mesh_file_name, type_, name=None,
+                         transform="null", from_load=False):
         if not from_load:
             js.SetupScene.save_state("add_mesh")
 
@@ -278,13 +267,17 @@ class Window(QMainWindow):
             for material in json_data["materials"]:
                 if "diffuseTexture" in material:
                     if "name" in material["diffuseTexture"]:
-                        file_name = "assets/models/" + material["diffuseTexture"]["name"]
+                        file_name = "assets/models/" + \
+                                    material["diffuseTexture"]["name"]
                         if os.path.isfile(file_name):
                             jpeg_file = "data:image/jpg;base64," +\
-                                str(base64.b64encode(open(file_name, "rb").read()))[2:]
-                            images[material["diffuseTexture"]["name"]] = jpeg_file
+                                str(base64.b64encode(
+                                    open(file_name, "rb").read()))[2:]
+                            images[material["diffuseTexture"]["name"]] = \
+                                jpeg_file
 
-        js.SetupScene.add_mesh(data, name, images, type_, transform, mesh_file_name)
+        js.SetupScene.add_mesh(data, name, images, type_, transform,
+                               mesh_file_name)
 
     def duplicate(self, b=None):
         if self.selected_mesh is not None:
@@ -298,24 +291,6 @@ class Window(QMainWindow):
             name = original_name + str(index)
             index += 1
         js.SetupScene.duplicate_mesh(mesh_id, name)
-
-    def translate(self):
-        js.SetupScene.save_state("translate_button")
-        if self.selected_mesh is not None:
-            js.SetupScene.translate_mesh_by_id(self.selected_mesh,
-                                               1, 0, 0)
-
-    def rotate(self):
-        js.SetupScene.save_state("rotate_button")
-        if self.selected_mesh is not None:
-            angle = str((np.pi / 8))
-            js.SetupScene.rotate_mesh_by_id(self.selected_mesh,
-                                            0, 0, angle)
-
-    def scale(self):
-        js.SetupScene.save_state("scale_button")
-        if self.selected_mesh is not None:
-            js.SetupScene.scale_mesh_by_id(self.selected_mesh, 2, 1, 1)
 
     def select_plane(self, which):
         self.selected_plane = which
@@ -352,28 +327,6 @@ class Window(QMainWindow):
         self.textEdit.setPlainText(QTextStream(reply).readAll())
         self.textEdit.resize(600, 400)
         reply.deleteLater()
-
-    def adjustTitle(self):
-        if 0 < self.progress < 100:
-            pass
-            # self.setWindowTitle("%s (%s%%)" % (self.view.title(), self.progress))
-        else:
-            self.setWindowTitle(self.wv.title())
-
-    def finishLoading(self):
-        self.progress = 100
-        self.adjustTitle()
-
-        """mesh_file = open('assets/box.babylon')
-
-        data = '('
-        for line in mesh_file:
-            data += "'" + line[:-1] + "' + \n"
-        mesh_file.close()
-        data += "'')"
-
-        js.SetupScene.add_mesh(data, 'my_cube')
-        js.SetupScene.add_mesh(data, 'my_other_cube')"""
 
     def mesh_selection_changed(self, b=0):
         selected = self.list_widget.selectedIndexes()
@@ -429,7 +382,8 @@ class Window(QMainWindow):
         else:
             cursor_pos = self.cursor().pos()
             # trial and error
-            y_fix = self.win.style().pixelMetric(QtWidgets.QStyle.PM_TitleBarHeight) * 1.5 + 1
+            y_fix = self.win.style().pixelMetric(
+                QtWidgets.QStyle.PM_TitleBarHeight) * 1.5 + 1
             return QtCore.QPoint(cursor_pos.x() - self.win.pos().x(),
                                  cursor_pos.y() - self.win.pos().y() - y_fix)
 
@@ -445,13 +399,15 @@ class Window(QMainWindow):
         rel_cursor = self.get_cursor_position(False)
         abs_cursor = self.get_cursor_position(True)
 
-        self.simulate_left_mouse_event(QtGui.QMouseEvent.MouseButtonPress, rel_cursor, abs_cursor)
+        self.simulate_left_mouse_event(QtGui.QMouseEvent.MouseButtonPress,
+                                       rel_cursor, abs_cursor)
 
     def simulate_mouse_release(self):
         rel_cursor = self.get_cursor_position(False)
         abs_cursor = self.get_cursor_position(True)
 
-        self.simulate_left_mouse_event(QtGui.QMouseEvent.MouseButtonRelease, rel_cursor, abs_cursor)
+        self.simulate_left_mouse_event(QtGui.QMouseEvent.MouseButtonRelease,
+                                       rel_cursor, abs_cursor)
 
     def simulate_mouse_move(self):
         rel_cursor = self.get_cursor_position(False)
@@ -489,19 +445,6 @@ class Window(QMainWindow):
     def js_mesh_load_error(self, mesh_name, error):
         print(mesh_name, error)
 
-    @QtCore.pyqtSlot(str, str, str, str, str)
-    def on_js_object_manipulation_performed(self, mesh_id, action, x, y, z):
-        s = ''
-
-        if x != '':
-            s += (x + ', ')
-
-        if y != '':
-            s += (y + ', ')
-
-        if z != '':
-            s += z
-
     @QtCore.pyqtSlot(str)
     def on_js_obj_drag_start(self, mesh_id):
         js.SetupScene.save_state("js_drag_translate")
@@ -517,7 +460,6 @@ class Window(QMainWindow):
     def on_js_console_log(self, log):
         """
         function for debugging purposes
-        probably the most important one :P
 
         :param log:
         :return:

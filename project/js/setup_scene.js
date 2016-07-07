@@ -144,9 +144,6 @@ function translateMeshByID(id, x, y, z) {
         meshes[id].position.x += x;
         meshes[id].position.y += y;
         meshes[id].position.z += z;
-
-        python_callback.on_js_object_manipulation_performed(id, 'translated',
-                                                            x1, y1, z1);
 }
 
 function rotateMeshByID(id, x, y, z) {
@@ -167,9 +164,6 @@ function rotateMeshByID(id, x, y, z) {
         meshes[id].rotation.x = x;
         meshes[id].rotation.y = y;
         meshes[id].rotation.z = z;
-
-        python_callback.on_js_object_manipulation_performed(id, 'rotated',
-                                                            x1, y1, z1);
     }
 }
 
