@@ -39,6 +39,8 @@ var createScene = function() {
     selectedPlaneMaterial = new BABYLON.StandardMaterial("selectedPlaneMaterial", scene);
     selectedPlaneMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
 
+    alert('create scene')
+
     // return the created scene
     return scene;
 }

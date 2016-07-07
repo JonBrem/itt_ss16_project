@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import wiimote as wm
 from PyQt5 import QtCore
 import time
-import utility_module as um
+from python.lib import wiimote as wm
+from python.modules import utility_module as um
 import pylab as pl
 
 

@@ -11,12 +11,12 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
 import numpy as np
 import json
-import undo_utility as undo
 import base64
 
-import js_interface_module as js
-import wiimote_interface_module as wii
-import blend_model_picker as model_table
+from python.modules import undo_utility as undo
+from python.modules import js_interface_module as js
+from python.modules import wiimote_interface_module as wii
+from python.modules import blend_model_picker as model_table
 
 
 class Window(QMainWindow):
@@ -30,7 +30,7 @@ class Window(QMainWindow):
 
         QNetworkProxyFactory.setUseSystemConfiguration(True)
 
-        self.win = uic.loadUi('room_design.ui')
+        self.win = uic.loadUi('ui/room_design.ui')
         self.wv = QWebView(self.win)
 
         js.SetupScene.init(self.wv)
@@ -156,30 +156,14 @@ class Window(QMainWindow):
         self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, button)
 
     def on_wm_plus_button_press(self):
-        js.SetupScene.save_state("wiimote_scale_up")
         if self.selected_mesh is not None:
-            js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
-
-            self.last_scale_factor = self.mesh_scale[0]
-
-            js.SetupScene.scale_mesh_by_id(self.selected_mesh,
-                                           self.last_scale_factor * 1.1,
-                                           self.last_scale_factor * 1.1,
-                                           self.last_scale_factor * 1.1)
+            js.SetupScene.save_state("duplicate_mesh")
+            self.duplicate()
 
     def on_wm_minus_button_press(self):
-        js.SetupScene.save_state("wiimote_scale_down")
         if self.selected_mesh is not None:
-            js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
-
-            self.last_scale_factor = self.mesh_scale[0]
-
-            js.SetupScene.get_translation_rotation_scale(self.selected_mesh)
-
-            js.SetupScene.scale_mesh_by_id(self.selected_mesh,
-                                           self.last_scale_factor * 0.9,
-                                           self.last_scale_factor * 0.9,
-                                           self.last_scale_factor * 0.9)
+            # save state?
+            self.delete_mesh(self.selected_mesh)
 
     def handle_mesh_scaling_fine(self, data):
         scale_step = (512 - 407) / 10000
@@ -643,7 +627,8 @@ class Window(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    url = QUrl('file:///' + os.path.dirname(os.path.realpath(__file__)) + '/index.html')
+    url = QUrl('file:///' + os.path.dirname(os.path.realpath(__file__)) +
+               '/html/index.html')
 
     win = Window(url, app)
 
