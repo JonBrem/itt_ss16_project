@@ -7,6 +7,7 @@ var startingPoint;
 var dragBugfixActive = false;
 
 var ground;
+var walls;
 
 var selectedPlaneName = "xz";
 var selectedPlaneIndicators = [];
@@ -41,6 +42,8 @@ var createScene = function() {
     selectedPlaneMaterial = new BABYLON.StandardMaterial("selectedPlaneMaterial", scene);
     selectedPlaneMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
 
+    createWalls(scene);
+
     // return the created scene
     return scene;
 }
@@ -63,6 +66,30 @@ jQuery(document).ready(function($) {
     canvas.addEventListener("mouseup", onMouseUp, false);
     canvas.addEventListener("mousemove", onMouseMove, false);
 });
+
+function createWalls(scene) {
+
+    walls = []
+    walls[0] = BABYLON.Mesh.CreateGround("wall1", 3, 6, 2, scene);
+    walls[0].position.x = 3;
+    walls[0].position.y = 1.5;
+    walls[0].rotation.z = Math.PI / 2;
+
+    walls[1] = BABYLON.Mesh.CreateGround("wall2", 3, 6, 2, scene);
+    walls[1].position.x = -3;
+    walls[1].position.y = 1.5;
+    walls[1].rotation.z = -Math.PI / 2;
+
+    walls[2] = BABYLON.Mesh.CreateGround("wall3", 6, 3, 2, scene);
+    walls[2].position.z = 3;
+    walls[2].position.y = 1.5;
+    walls[2].rotation.x = -Math.PI / 2;
+
+    walls[3] = BABYLON.Mesh.CreateGround("wall3", 6, 3, 2, scene);
+    walls[3].position.z = -3;
+    walls[3].position.y = 1.5;
+    walls[3].rotation.x = Math.PI / 2;
+}
 
 
 function addMesh(data, id, images, type, transform, fileName) {
@@ -289,7 +316,10 @@ function onMouseDown(evt) {
     if (evt.button == 0) {
         isMouseDown = true;
 
-        var pickResult = scene.pick(evt.clientX, evt.clientY);
+        // function: make walls not clickable!
+        var pickResult = scene.pick(evt.clientX, evt.clientY, function(mesh) {
+            return walls.indexOf(mesh) < 0? mesh : null;
+        });
         if (pickResult.hit) {
             python_callback.on_object_clicked(pickResult.pickedMesh.id);
         } else {
