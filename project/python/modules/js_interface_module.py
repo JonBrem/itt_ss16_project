@@ -89,6 +89,11 @@ class SetupScene:
     def on_scale_end():
         SetupScene.webview.evaluateJavaScript("onScaleEnd();")
 
+    @staticmethod
+    def set_camera_to_default():
+        print('js interface')
+        SetupScene.webview.evaluateJavaScript("setCameraToDefault();")
+
 
 def deserialize_list(js_list_as_string):
     l = []

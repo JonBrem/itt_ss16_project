@@ -110,6 +110,7 @@ class Window(QMainWindow):
             lambda: self.on_wm_dpad_button_press(Qt.Key_Right))
         self.wiimote.right_button_released.connect(
             lambda: self.on_wm_dpad_button_release(Qt.Key_Right))
+        self.wiimote.home_button_clicked.connect(self.on_wm_home_button_clicked)
 
     def on_wm_ir_data_update(self, data):
         x, y = data
@@ -158,6 +159,10 @@ class Window(QMainWindow):
         if self.selected_mesh is not None:
             js.SetupScene.save_state("remove_mesh")
             self.delete_mesh(self.selected_mesh)
+
+    def on_wm_home_button_clicked(self):
+        js.SetupScene.set_camera_to_default()
+        print('move py')
 
     def handle_mesh_scaling_fine(self, data):
         scale_step = (512 - 407) / 10000

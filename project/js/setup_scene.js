@@ -395,3 +395,11 @@ function getPositionAlongSelectedPlane(evt) {
 
     return null;
 }
+
+function setCameraToDefault() {
+    camera.position.x = 0;
+    camera.position.y = 5;
+    camera.position.z = -10;
+
+    camera.setTarget(new BABYLON.Vector3(0, 0, 0));
+}
