@@ -490,6 +490,13 @@ class Window(QMainWindow):
 
     @QtCore.pyqtSlot(str, str)
     def save_state_result(self, scene_json, identifier):
+        scene_obj = json.loads(scene_json)
+
+        scene_obj["selection"] = self.selected_mesh if \
+            (self.selected_mesh is not None) else "None"
+
+        scene_json = json.dumps(scene_obj)
+
         if identifier == "undo":
             self.undo_utility.set_first_state_at_undo(scene_json)
             self.undo()
@@ -505,6 +512,11 @@ class Window(QMainWindow):
                 "rot": mesh["rot"],
                 "scale": mesh["scale"]
                 }), True)
+
+        if as_data["selection"] is not "None":
+            self.select_mesh(as_data["selection"])
+        else:
+            self.de_select_meshes()
 
     def clear_all(self):
         while self.list_widget.count() > 0:
