@@ -196,6 +196,14 @@ function rotateMeshByID(id, x, y, z) {
     }
 }
 
+function scaleMeshByIDBasic(id, factorX, factorY, factorZ) {
+    if(id in meshes) {
+        meshes[id].scaling.x = factorX;
+        meshes[id].scaling.y = factorY;
+        meshes[id].scaling.z = factorZ;
+    }
+}
+
 function scaleMeshByID(id, factorX, factorY, factorZ) {
     if(id in meshes) {
         if(factorX == 1 && factorY == 1 && factorZ == 1) return;

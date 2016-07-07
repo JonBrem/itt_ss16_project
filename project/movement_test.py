@@ -518,6 +518,65 @@ class Window(QMainWindow):
         else:
             self.de_select_meshes()
 
+    def load_changed_state(self, current_state, next_state):
+        # the other method had performance problems if there were many meshes
+        # this one only updates meshes if there was a change in the scene!
+        for mesh in current_state["meshes"]:
+            found_mesh = False
+            for other_mesh in next_state["meshes"]:
+                if other_mesh["id"] == mesh["id"]:
+                    found_mesh = True
+                    break
+            if not found_mesh:
+                self.delete_mesh(mesh["id"])
+
+        # this needs a refactor :D
+        # what it does is this: for every mesh, checks if the mesh
+        # was there before. if not, creates it at the specified pos/rot/scale.
+        # if it was, checks if there were changes in pos/rot/scale; applies them, if so.
+        for mesh in next_state["meshes"]:
+            found_mesh = False
+            for other_mesh in current_state["meshes"]:
+                if other_mesh["id"] == mesh["id"]:
+                    found_mesh = True
+                    self.check_loading_changes(mesh, other_mesh)
+                    break
+
+            if not found_mesh:
+                self.request_add_mesh(mesh["fileName"], mesh["type"], mesh["id"], json.dumps({
+                    "pos": mesh["pos"],
+                    "rot": mesh["rot"],
+                    "scale": mesh["scale"]
+                }), True)
+
+        if next_state["selection"] is not "None":
+            self.select_mesh(next_state["selection"])
+        else:
+            self.de_select_meshes()
+
+    def check_loading_changes(self, mesh, other_mesh):
+        for what in ("pos", "rot", "scale"):
+            newData = mesh[what]
+            oldData = other_mesh[what]
+            for item in range(0, 3):
+                if newData[item] != oldData[item]:
+                    if what == "pos":
+                        js.SetupScene.translate_mesh_by_id(mesh["id"],
+                                                           newData[0] - oldData[0],
+                                                           newData[1] - oldData[1],
+                                                           newData[2] - oldData[2])
+                    elif what == "rot":
+                        js.SetupScene.rotate_mesh_by_id(mesh["id"],
+                                                        newData[0] - oldData[0],
+                                                        newData[1] - oldData[1],
+                                                        newData[2] - oldData[2])
+                    elif what == "scale":
+                        js.SetupScene.scale_mesh_by_id(mesh["id"],
+                                                       newData[0] - oldData[0],
+                                                       newData[1] - oldData[1],
+                                                       newData[2] - oldData[2], False)
+                break
+
     def clear_all(self):
         while self.list_widget.count() > 0:
             self.list_widget.takeItem(0)
@@ -541,13 +600,17 @@ class Window(QMainWindow):
 
     def undo(self):
         undone_state = self.undo_utility.undo()
+        current_state = self.undo_utility.current_state(True)
         if undone_state is not None:
-            self.load_state(undone_state["state"])
+            # self.load_state(undone_state["state"])
+            self.load_changed_state(json.loads(current_state["state"]), json.loads(undone_state["state"]))
 
     def redo(self):
         redone_state = self.undo_utility.redo()
+        current_state = self.undo_utility.current_state(False)
         if redone_state is not None:
-            self.load_state(redone_state["state"])
+            # self.load_state(redone_state["state"])
+            self.load_changed_state(json.loads(current_state["state"]), json.loads(redone_state["state"]))
 
     # event filter that causes mesh selection table to lose focus
     # (if it has focus)

@@ -58,3 +58,14 @@ class UndoUtility():
             return self.action_history_ring[self.current_index + 1]
         else:
             return None
+
+    def current_state(self, after_undo=True):
+        if len(self.action_history_ring) == 0:
+            return None
+        if after_undo:
+            if self.current_index == len(self.action_history_ring) - 2:
+                return {"state": self.first_state_at_undo, "action": "not identified"}
+            else:
+                return self.action_history_ring[self.current_index + 2]
+        else:
+            return self.action_history_ring[self.current_index]

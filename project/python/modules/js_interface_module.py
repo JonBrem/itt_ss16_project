@@ -34,9 +34,13 @@ class SetupScene:
             str(angle_x) + ", " + str(angle_y) + ", " + str(angle_z) + " );")
 
     @staticmethod
-    def scale_mesh_by_id(id, factor_x, factor_y, factor_z):
+    def scale_mesh_by_id(id, factor_x, factor_y, factor_z, keep_y_bottom=True):
+        method = "scaleMeshByID"
+        if not keep_y_bottom:
+            method = "scaleMeshByIDBasic"
+
         SetupScene.webview.evaluateJavaScript(
-            "scaleMeshByID('" + id + "', " +
+            method + "('" + id + "', " +
             str(factor_x) + ", " + str(factor_y) + ", " +
             str(factor_z) + " );")
 
