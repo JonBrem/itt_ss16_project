@@ -9,6 +9,7 @@ var dragBugfixActive = false;
 var ground;
 
 var selectedPlaneName = "xz";
+var selectedPlaneIndicators = [];
 var selectedPlane = null;
 var selectedPlaneMaterial;
 var isMouseDown = false;
@@ -36,6 +37,7 @@ var createScene = function() {
 
     // create a built-in "ground" shape; its constructor takes the same 5 params as the sphere's one
     ground = BABYLON.Mesh.CreateGround('ground1', 6, 6, 2, scene);
+
     selectedPlaneMaterial = new BABYLON.StandardMaterial("selectedPlaneMaterial", scene);
     selectedPlaneMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
 
@@ -303,38 +305,75 @@ function selectPlane(which) {
 function createPlaneForSelection() {
     if (selectedPlane != null && selectedPlane != undefined) {
         selectedPlane.dispose();
+        selectedPlaneIndicators[0].dispose();
+        selectedPlaneIndicators[1].dispose();
     }
-    selectedPlane = BABYLON.Mesh.CreateGround('ground2', 200, 200, 2, scene);
-    selectedPlane.material = selectedPlaneMaterial;
 
+    initSelectedPlane();
     var bbox = highlightedMesh.getBoundingInfo().boundingBox;
 
     var camera_pos = camera.position;
     var mesh_pos = bbox.center;
 
-    selectedPlane.position.x = mesh_pos.x;
-    selectedPlane.position.y = mesh_pos.y;
-    selectedPlane.position.z = mesh_pos.z;
+    setSelectedPlanePosition(mesh_pos.x, mesh_pos.y, mesh_pos.z);
 
     if (selectedPlaneName == "xz") {
         if (camera_pos.y < mesh_pos.y) {
-            selectedPlane.rotation.x = Math.PI;
+            setSelectedPlaneRotation(Math.PI, 0, 0);
+        } else {
+            setSelectedPlaneRotation(0, 0, 0);
         }
     } else if (selectedPlaneName == "xy") {
-        selectedPlane.rotation.x = Math.PI * 3/2;
         if (camera_pos.z > mesh_pos.z) {
-            selectedPlane.rotation.y = Math.PI;
+            setSelectedPlaneRotation(Math.PI * 3/2, Math.PI, 0);
+        } else {
+            setSelectedPlaneRotation(Math.PI * 3/2, 0, 0);
         }
     } else { // selectedPlaneName == "yz"
-        selectedPlane.rotation.x = Math.PI * 3/2;
         if (camera_pos.x < mesh_pos.x) {
-            selectedPlane.rotation.y = Math.PI * 1/2;
+            setSelectedPlaneRotation(Math.PI * 3/2, Math.PI * 1/2, 0);
         } else {
-            selectedPlane.rotation.y = Math.PI * 3/2;
+            setSelectedPlaneRotation(Math.PI * 3/2, Math.PI * 3/2, 0);
         }
     }
+}
 
-    selectedPlane.visibility = 0.2;
+function initSelectedPlane() {
+    selectedPlane = BABYLON.Mesh.CreateGround('selectedPlane', 200, 200, 2, scene);
+    selectedPlaneIndicators[0] = BABYLON.Mesh.CreateCylinder('selectedPlaneIndicator1', 200, 0.05, 0.05, 8, scene);
+    selectedPlaneIndicators[1] = BABYLON.Mesh.CreateCylinder('selectedPlaneIndicator2', 200, 0.05, 0.05, 8, scene);
+
+    selectedPlane.material = selectedPlaneMaterial;
+    selectedPlaneIndicators[0].material = selectedPlaneMaterial;
+    selectedPlaneIndicators[1].material = selectedPlaneMaterial;
+
+    selectedPlane.visibility = 0.0;
+    selectedPlaneIndicators[0].visibility = 0.3;
+    selectedPlaneIndicators[1].visibility = 0.3;
+}
+
+function setSelectedPlanePosition(x, y, z) {
+    selectedPlane.position.x = x;
+    selectedPlane.position.y = y;
+    selectedPlane.position.z = z;
+    selectedPlaneIndicators[0].position.x = x;
+    selectedPlaneIndicators[0].position.y = y;
+    selectedPlaneIndicators[0].position.z = z;
+    selectedPlaneIndicators[1].position.x = x;
+    selectedPlaneIndicators[1].position.y = y;
+    selectedPlaneIndicators[1].position.z = z;
+}
+
+function setSelectedPlaneRotation(x, y, z) {
+    selectedPlane.rotation.x = x;
+    selectedPlane.rotation.y = y;
+    selectedPlane.rotation.z = z;
+    selectedPlaneIndicators[0].rotation.x = x + Math.PI / 2;
+    selectedPlaneIndicators[0].rotation.y = y;
+    selectedPlaneIndicators[0].rotation.z = z;
+    selectedPlaneIndicators[1].rotation.x = x + Math.PI / 2;
+    selectedPlaneIndicators[1].rotation.y = y;
+    selectedPlaneIndicators[1].rotation.z = z + Math.PI / 2;
 }
 
 function onMouseUp() {
@@ -342,6 +381,8 @@ function onMouseUp() {
 
     if (selectedPlane != null && selectedPlane != undefined) {
         selectedPlane.dispose();
+        selectedPlaneIndicators[0].dispose();
+        selectedPlaneIndicators[1].dispose();
     }
 
     if (startingPoint) {
