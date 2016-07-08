@@ -570,22 +570,21 @@ class Window(QMainWindow):
             newData = mesh[what]
             oldData = other_mesh[what]
             for item in range(0, 3):
-                if newData[item] != oldData[item]:
-                    if what == "pos":
-                        js.SetupScene.translate_mesh_by_id(mesh["id"],
-                                                           newData[0] - oldData[0],
-                                                           newData[1] - oldData[1],
-                                                           newData[2] - oldData[2])
-                    elif what == "rot":
-                        js.SetupScene.rotate_mesh_by_id(mesh["id"],
-                                                        newData[0],
-                                                        newData[1],
-                                                        newData[2])
-                    elif what == "scale":
-                        js.SetupScene.scale_mesh_by_id(mesh["id"],
-                                                       newData[0],
-                                                       newData[1],
-                                                       newData[2], False)
+                if what == "pos":
+                    js.SetupScene.translate_mesh_by_id(mesh["id"],
+                                                       newData[0] - oldData[0],
+                                                       newData[1] - oldData[1],
+                                                       newData[2] - oldData[2])
+                elif what == "rot":
+                    js.SetupScene.rotate_mesh_by_id(mesh["id"],
+                                                    newData[0],
+                                                    newData[1],
+                                                    newData[2])
+                elif what == "scale":
+                    js.SetupScene.scale_mesh_by_id(mesh["id"],
+                                                   newData[0],
+                                                   newData[1],
+                                                   newData[2], False)
                 break
 
     def clear_all(self):
