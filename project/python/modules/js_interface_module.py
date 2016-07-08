@@ -95,8 +95,12 @@ class SetupScene:
 
     @staticmethod
     def set_camera_to_default():
-        print('js interface')
         SetupScene.webview.evaluateJavaScript("setCameraToDefault();")
+
+    @staticmethod
+    def target_camera_to_plane(plane):
+        SetupScene.webview.evaluateJavaScript("targetCameraToPlane('" + plane +
+                                              "');")
 
 
 def deserialize_list(js_list_as_string):

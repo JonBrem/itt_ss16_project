@@ -162,7 +162,6 @@ class Window(QMainWindow):
 
     def on_wm_home_button_clicked(self):
         js.SetupScene.set_camera_to_default()
-        print('move py')
 
     def handle_mesh_scaling_fine(self, data):
         scale_step = (512 - 407) / 10000
@@ -235,6 +234,18 @@ class Window(QMainWindow):
         self.win.x_y_plane_btn.clicked.connect(lambda: self.select_plane("xy"))
         self.win.x_z_plane_btn.clicked.connect(lambda: self.select_plane("xz"))
         self.win.y_z_plane_btn.clicked.connect(lambda: self.select_plane("yz"))
+
+        self.win.x_y_plane_cam_btn.clicked.connect(
+            lambda: self.target_cam_to_plane('xy'))
+
+        self.win.x_z_plane_cam_btn.clicked.connect(
+            lambda: self.target_cam_to_plane('xz'))
+
+        self.win.y_z_plane_cam_btn.clicked.connect(
+            lambda: self.target_cam_to_plane('yz'))
+
+    def target_cam_to_plane(self, plane):
+            js.SetupScene.target_camera_to_plane(plane)
 
     def read_mesh_data(self, file_path):
         with open(file_path, 'r') as mesh_data_file:

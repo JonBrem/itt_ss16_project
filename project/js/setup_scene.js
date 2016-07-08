@@ -85,7 +85,7 @@ function createWalls(scene) {
     walls[2].position.y = 1.5;
     walls[2].rotation.x = -Math.PI / 2;
 
-    walls[3] = BABYLON.Mesh.CreateGround("wall3", 6, 3, 2, scene);
+    walls[3] = BABYLON.Mesh.CreateGround("wall4", 6, 3, 2, scene);
     walls[3].position.z = -3;
     walls[3].position.y = 1.5;
     walls[3].rotation.x = Math.PI / 2;
@@ -481,4 +481,26 @@ function setCameraToDefault() {
     camera.position.z = -10;
 
     camera.setTarget(new BABYLON.Vector3(0, 0, 0));
+}
+
+function targetCameraToPlane(plane) {
+    if(plane === 'xy') {
+        camera.position.x = 0;
+        camera.position.y = 1;
+        camera.position.z = -10;
+
+        camera.setTarget(new BABYLON.Vector3(0, 1, 0));
+    } else if(plane === 'xz') {
+        camera.position.x = 0;
+        camera.position.y = 10;
+        camera.position.z = 0;
+
+        camera.setTarget(new BABYLON.Vector3(0, 0, 0));
+    } else if(plane === 'yz') {
+        camera.position.x = 10;
+        camera.position.y = 1;
+        camera.position.z = 0;
+
+        camera.setTarget(new BABYLON.Vector3(0, 1, 0));
+    }
 }

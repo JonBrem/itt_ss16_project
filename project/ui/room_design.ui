@@ -92,6 +92,45 @@
      <string>YZ  |/</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="x_y_plane_cam_btn">
+    <property name="geometry">
+     <rect>
+      <x>1040</x>
+      <y>410</y>
+      <width>71</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Cam XY  |_</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="y_z_plane_cam_btn">
+    <property name="geometry">
+     <rect>
+      <x>1220</x>
+      <y>410</y>
+      <width>71</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Cam YZ  |/</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="x_z_plane_cam_btn">
+    <property name="geometry">
+     <rect>
+      <x>1130</x>
+      <y>410</y>
+      <width>71</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Cam XZ  /_</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
