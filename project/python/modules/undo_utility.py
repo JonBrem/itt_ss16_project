@@ -11,6 +11,14 @@ class UndoUtility():
         self.currently_undoing = False
         self.currently_redoing = False
 
+    def reset(self):
+        self.action_history_ring = um.RingArray(12)
+        self.current_index = 0
+
+        self.first_state_at_undo = None
+        self.currently_undoing = False
+        self.currently_redoing = False
+
     def add_action(self, action, state):
         """ params: action = string description of the action
                     state = program state

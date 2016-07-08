@@ -12,6 +12,10 @@ var groundMaterial;
 var wallMaterialVert;
 var wallMaterialHoriz;
 
+// for save/load
+var groundTextureData;
+var wallTextureData;
+
 var selectedPlaneName = "xz";
 var selectedPlaneIndicators = [];
 var selectedPlane = null;
@@ -51,6 +55,23 @@ function createScene(floorX, floorY) {
     floorSizeX = floorX;
     floorSizeY = floorY;
 
+    createWalls(scene, floorX, floorY);
+}
+
+function redoScene(floorX, floorY) {
+    setCameraToDefault();
+
+    floorSizeX = floorX;
+    floorSizeY = floorY;
+
+    ground.dispose();
+
+    ground = BABYLON.Mesh.CreateGround('ground1', floorX, floorY, 2, scene);
+    groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+    ground.material = groundMaterial;
+
+    for (var i = 0; i < walls.length; i++) walls[i].dispose();
+    walls = [];
     createWalls(scene, floorX, floorY);
 }
 
@@ -306,12 +327,16 @@ function getTranslationRotationScale(mesh_id) {
     python_callback.on_translation_rotation_scale_request(trans, rot, scale);
 }
 
-function setTextureData(type, textureName, textureData) {
+function setTextureData(type, textureName, textureData, fileName) {
     if (type == "carpet") {
+        groundTextureData = {"type": type, "textureName": textureName, "fileName": fileName};
+
         groundMaterial.diffuseTexture = new BABYLON.Texture(textureData, scene);   
         groundMaterial.diffuseTexture.uScale = Math.ceil(floorSizeX / 2);
         groundMaterial.diffuseTexture.vScale = Math.ceil(floorSizeY / 2);
     } else {
+        wallTextureData = {"type": type, "textureName": textureName, "fileName": fileName};
+
         wallMaterialVert.diffuseTexture = new BABYLON.Texture(textureData, scene);
         wallMaterialHoriz.diffuseTexture = new BABYLON.Texture(textureData, scene);
         wallMaterialVert.diffuseTexture.uScale = Math.ceil(floorSizeX / 2);
@@ -319,6 +344,17 @@ function setTextureData(type, textureName, textureData) {
 
         wallMaterialHoriz.diffuseTexture.uScale = Math.ceil(floorSizeY / 2);
         wallMaterialHoriz.diffuseTexture.vScale = 2;
+    }
+}
+
+function removeTextureData(type) {
+    if (type == "carpet") {
+        groundTextureData = undefined;
+        groundMaterial.diffuseTexture = null;
+    } else {
+        wallTextureData = undefined;
+        wallMaterialVert.diffuseTexture = null;
+        wallMaterialHoriz.diffuseTexture = null;
     }
 }
 
@@ -330,7 +366,11 @@ function removeMesh(mesh_id) {
 }
 
 function saveScene(identifier) {
-    scene_data = {"meshes": []};
+    scene_data = {
+        "meshes": [],
+        "room": {"x": floorSizeX, "y": floorSizeY},
+        "walls": wallTextureData,
+        "floor": groundTextureData};
 
     for (id in meshes) {    
         scene_data["meshes"][scene_data["meshes"].length] = {

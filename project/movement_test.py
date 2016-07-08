@@ -90,6 +90,7 @@ class Window(QMainWindow):
         x, y, ok = um.InputDialog.get_new_room_xz_dimensions()
 
         if ok:
+            self.clear_all()
             js.SetupScene.create_new_scene(x, y)
 
     def on_save_action(self):
@@ -349,10 +350,13 @@ class Window(QMainWindow):
             index += 1
         js.SetupScene.duplicate_mesh(mesh_id, name)
 
-    def request_change_texture(self, file_name, name, type_):
+    def request_change_texture(self, file_name, name, type_, create_undo_point=True):
+        if create_undo_point:
+            js.SetupScene.save_state("change_texture")
+
         base64data = "data:image/jpg;base64," + \
             str(base64.b64encode(open(file_name, "rb").read()))[2:]
-        js.SetupScene.set_texture(type_, name, base64data)
+        js.SetupScene.set_texture(type_, name, base64data, file_name)
 
     def select_plane(self, which):
         self.selected_plane = which
@@ -543,6 +547,9 @@ class Window(QMainWindow):
     def load_state(self, scene_json):
         self.clear_all()
         as_data = json.loads(scene_json)
+
+        js.SetupScene.redo_scene(as_data["room"]["x"], as_data["room"]["y"])
+
         for mesh in as_data["meshes"]:
             self.request_add_mesh(mesh["fileName"], mesh["type"], mesh["id"],
                                   json.dumps({
@@ -555,6 +562,20 @@ class Window(QMainWindow):
             self.select_mesh(as_data["selection"])
         else:
             self.de_select_meshes()
+
+        if "walls" in as_data:
+            self.request_change_texture(as_data["walls"]["fileName"],
+                                        as_data["walls"]["textureName"],
+                                        as_data["walls"]["type"], False)
+        else:
+            js.SetupScene.remove_texture("walls")
+
+        if "floor" in as_data:
+            self.request_change_texture(as_data["floor"]["fileName"],
+                                        as_data["floor"]["textureName"],
+                                        as_data["floor"]["type"], False)
+        else:
+            js.SetupScene.remove_texture("carpet")
 
     def load_changed_state(self, current_state, next_state):
         # the other method had performance problems if there were many meshes
@@ -594,27 +615,39 @@ class Window(QMainWindow):
         else:
             self.de_select_meshes()
 
+        if "walls" in next_state:
+            self.request_change_texture(next_state["walls"]["fileName"],
+                                        next_state["walls"]["textureName"],
+                                        next_state["walls"]["type"], False)
+        else:
+            js.SetupScene.remove_texture("walls")
+
+        if "floor" in next_state:
+            self.request_change_texture(next_state["floor"]["fileName"],
+                                        next_state["floor"]["textureName"],
+                                        next_state["floor"]["type"], False)
+        else:
+            js.SetupScene.remove_texture("carpet")
+
     def check_loading_changes(self, mesh, other_mesh):
         for what in ("pos", "rot", "scale"):
             newData = mesh[what]
             oldData = other_mesh[what]
-            for item in range(0, 3):
-                if what == "pos":
-                    js.SetupScene.translate_mesh_by_id(mesh["id"],
-                                                       newData[0] - oldData[0],
-                                                       newData[1] - oldData[1],
-                                                       newData[2] - oldData[2])
-                elif what == "rot":
-                    js.SetupScene.rotate_mesh_by_id(mesh["id"],
-                                                    newData[0],
-                                                    newData[1],
-                                                    newData[2])
-                elif what == "scale":
-                    js.SetupScene.scale_mesh_by_id(mesh["id"],
-                                                   newData[0],
-                                                   newData[1],
-                                                   newData[2], False)
-                break
+            if what == "pos":
+                js.SetupScene.translate_mesh_by_id(mesh["id"],
+                                                   newData[0] - oldData[0],
+                                                   newData[1] - oldData[1],
+                                                   newData[2] - oldData[2])
+            elif what == "rot":
+                js.SetupScene.rotate_mesh_by_id(mesh["id"],
+                                                newData[0],
+                                                newData[1],
+                                                newData[2])
+            elif what == "scale":
+                js.SetupScene.scale_mesh_by_id(mesh["id"],
+                                               newData[0],
+                                               newData[1],
+                                               newData[2], False)
 
     def clear_all(self):
         while self.list_widget.count() > 0:
@@ -623,8 +656,11 @@ class Window(QMainWindow):
         for mesh in self.meshes:
             js.SetupScene.remove_mesh(mesh)
 
+        js.SetupScene.remove_texture("walls")
+        js.SetupScene.remove_texture("carpet")
         self.meshes = []
         self.selected_mesh = None
+        self.undo_utility.reset()
 
     def delete_mesh(self, mesh_id):
         self.selected_mesh = None
