@@ -34,7 +34,7 @@ var createScene = function() {
     camera.attachControl(canvas, false);
 
     // create a basic light, aiming 0,1,0 - meaning, to the sky
-    var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), scene);
+    var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0.1), scene);
 
     // create a built-in "ground" shape; its constructor takes the same 5 params as the sphere's one
     ground = BABYLON.Mesh.CreateGround('ground1', 6, 6, 2, scene);
@@ -353,7 +353,7 @@ function createPlaneForSelection() {
     var camera_pos = camera.position;
     var mesh_pos = bbox.center;
 
-    setSelectedPlanePosition(mesh_pos.x, mesh_pos.y, mesh_pos.z);
+    setSelectedPlanePosition(mesh_pos);
 
     if (selectedPlaneName == "xz") {
         if (camera_pos.y < mesh_pos.y) {
@@ -390,16 +390,10 @@ function initSelectedPlane() {
     selectedPlaneIndicators[1].visibility = 0.3;
 }
 
-function setSelectedPlanePosition(x, y, z) {
-    selectedPlane.position.x = x;
-    selectedPlane.position.y = y;
-    selectedPlane.position.z = z;
-    selectedPlaneIndicators[0].position.x = x;
-    selectedPlaneIndicators[0].position.y = y;
-    selectedPlaneIndicators[0].position.z = z;
-    selectedPlaneIndicators[1].position.x = x;
-    selectedPlaneIndicators[1].position.y = y;
-    selectedPlaneIndicators[1].position.z = z;
+function setSelectedPlanePosition(position) {
+    selectedPlane.position = position;
+    selectedPlaneIndicators[0].position = position;
+    selectedPlaneIndicators[1].position = position;
 }
 
 function setSelectedPlaneRotation(x, y, z) {
