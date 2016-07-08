@@ -9,7 +9,8 @@ var dragBugfixActive = false;
 var ground;
 var walls;
 var groundMaterial;
-var wallMaterial;
+var wallMaterialVert;
+var wallMaterialHoriz;
 
 var selectedPlaneName = "xz";
 var selectedPlaneIndicators = [];
@@ -21,6 +22,7 @@ var scaleInitialYBottom = undefined;
 
 var meshes = {};
 var highlightedMesh;
+var floorSizeX, floorSizeY;
 
 function createScene(floorX, floorY) {
     // create a basic BJS Scene object
@@ -46,6 +48,9 @@ function createScene(floorX, floorY) {
     selectedPlaneMaterial = new BABYLON.StandardMaterial("selectedPlaneMaterial", scene);
     selectedPlaneMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
 
+    floorSizeX = floorX;
+    floorSizeY = floorY;
+
     createWalls(scene, floorX, floorY);
 }
 
@@ -69,36 +74,37 @@ jQuery(document).ready(function($) {
 });
 
 function createWalls(scene, floorX, floorY) {
+    wallMaterialVert = new BABYLON.StandardMaterial("wallMaterialVert", scene);
+    wallMaterialHoriz = new BABYLON.StandardMaterial("wallMaterialHoriz", scene);
 
     walls = []
-    walls[0] = BABYLON.Mesh.CreateGround("wall1", floorX, floorY / 2, 2, scene);
+    walls[0] = BABYLON.Mesh.CreateGround("wall1", floorY, 3, 2, scene);
     walls[0].position.x = floorX / 2;
-    walls[0].position.y = floorY / 4;
+    walls[0].position.y = 1.5;
     walls[0].rotation.z = Math.PI / 2;
     walls[0].rotation.x = -Math.PI / 2;
+    walls[0].material = wallMaterialHoriz;
 
-    walls[1] = BABYLON.Mesh.CreateGround("wall2", floorX, floorY / 2, 2, scene);
+    walls[1] = BABYLON.Mesh.CreateGround("wall2", floorY, 3, 2, scene);
     walls[1].position.x = -floorX / 2;
-    walls[1].position.y = floorY / 4;
+    walls[1].position.y = 1.5;;
     walls[1].rotation.z = -Math.PI / 2;
     walls[1].rotation.x = -Math.PI / 2;
+    walls[1].material = wallMaterialHoriz;
 
-    walls[2] = BABYLON.Mesh.CreateGround("wall3", floorX, floorY / 2, 2, scene);
-    walls[2].position.z = floorX / 2;
-    walls[2].position.y = floorY / 4;
+    walls[2] = BABYLON.Mesh.CreateGround("wall3", floorX, 3, 2, scene);
+    walls[2].position.z = floorY / 2;
+    walls[2].position.y = 1.5;;
     walls[2].rotation.x = -Math.PI / 2;
+    walls[2].material = wallMaterialVert;
 
-    walls[3] = BABYLON.Mesh.CreateGround("wall4", floorX, floorY / 2, 2, scene);
-    walls[3].position.z = -floorX / 2;
-    walls[3].position.y = floorY / 4;
+    walls[3] = BABYLON.Mesh.CreateGround("wall4", floorX, 3, 2, scene);
+    walls[3].position.z = -floorY / 2;
+    walls[3].position.y = 1.5;;
     walls[3].rotation.x = Math.PI * 3/2;
     walls[3].rotation.y = Math.PI;
+    walls[3].material = wallMaterialVert;
 
-    wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
-    for(var i = 0; i < walls.length; i++) {
-        var wall = walls[i];
-        wall.material = wallMaterial;
-    }
 }
 
 function addMesh(data, id, images, type, transform, fileName) {
@@ -302,9 +308,17 @@ function getTranslationRotationScale(mesh_id) {
 
 function setTextureData(type, textureName, textureData) {
     if (type == "carpet") {
-        groundMaterial.diffuseTexture = new BABYLON.Texture(textureData, scene);
+        groundMaterial.diffuseTexture = new BABYLON.Texture(textureData, scene);   
+        groundMaterial.diffuseTexture.uScale = Math.ceil(floorSizeX / 2);
+        groundMaterial.diffuseTexture.vScale = Math.ceil(floorSizeY / 2);
     } else {
-        wallMaterial.diffuseTexture = new BABYLON.Texture(textureData, scene);
+        wallMaterialVert.diffuseTexture = new BABYLON.Texture(textureData, scene);
+        wallMaterialHoriz.diffuseTexture = new BABYLON.Texture(textureData, scene);
+        wallMaterialVert.diffuseTexture.uScale = Math.ceil(floorSizeX / 2);
+        wallMaterialVert.diffuseTexture.vScale = 2;
+
+        wallMaterialHoriz.diffuseTexture.uScale = Math.ceil(floorSizeY / 2);
+        wallMaterialHoriz.diffuseTexture.vScale = 2;
     }
 }
 

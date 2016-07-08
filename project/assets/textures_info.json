@@ -5,9 +5,45 @@
             "img": "assets/img/question-mark-4-128.png",
             "models": [
                 {
-                    "name": "Flower",
-                    "preview": "assets/img/bunch-flowers-128.png",
-                    "file": "assets/img/stolek-barowy-bst-9449-model-3d-fameg.jpg",
+                    "name": "White Wall",
+                    "preview": "assets/img/white_wall.jpg",
+                    "file": "assets/img/white_wall.jpg",
+                    "type": "wallpaper"
+                },
+                {
+                    "name": "Beige Wall",
+                    "preview": "assets/img/seamless_paper_texture.jpg",
+                    "file": "assets/img/seamless_paper_texture.jpg",
+                    "type": "wallpaper"
+                },
+                {
+                    "name": "Dark Wall",
+                    "preview": "assets/img/black_paper.jpg",
+                    "file": "assets/img/black_paper.jpg",
+                    "type": "wallpaper"
+                },
+                {
+                    "name": "Green Gobbler",
+                    "preview": "assets/img/green_gobbler.jpg",
+                    "file": "assets/img/green_gobbler.jpg",
+                    "type": "wallpaper"
+                },
+                {
+                    "name": "Elaborate",
+                    "preview": "assets/img/xv.jpg",
+                    "file": "assets/img/xv.jpg",
+                    "type": "wallpaper"
+                },
+                {
+                    "name": "Teal Dust",
+                    "preview": "assets/img/green_dust_scratch.jpg",
+                    "file": "assets/img/green_dust_scratch.jpg",
+                    "type": "wallpaper"
+                },
+                {
+                    "name": "Restaurant",
+                    "preview": "assets/img/restaurant_icons.jpg",
+                    "file": "assets/img/restaurant_icons.jpg",
                     "type": "wallpaper"
                 }
             ]
@@ -17,9 +53,45 @@
             "img": "assets/img/question-mark-4-128.png",
             "models": [
                 {
-                    "name": "Flower",
-                    "preview": "assets/img/bunch-flowers-128.png",
-                    "file": "assets/img/stolek-barowy-bst-9449-model-3d-fameg.jpg",
+                    "name": "Bright Carpet",
+                    "preview": "assets/img/cheap_diagonal_fabric.jpg",
+                    "file": "assets/img/cheap_diagonal_fabric.jpg",
+                    "type": "carpet"
+                },
+                {
+                    "name": "Greyish",
+                    "preview": "assets/img/soft_wallpaper.jpg",
+                    "file": "assets/img/soft_wallpaper.jpg",
+                    "type": "carpet"
+                },
+                {
+                    "name": "Beige",
+                    "preview": "assets/img/seamless_paper_texture.jpg",
+                    "file": "assets/img/seamless_paper_texture.jpg",
+                    "type": "carpet"
+                },
+                {
+                    "name": "Dark",
+                    "preview": "assets/img/classy_fabric.jpg",
+                    "file": "assets/img/classy_fabric.jpg",
+                    "type": "carpet"
+                },
+                {
+                    "name": "Metal Squares",
+                    "preview": "assets/img/squared_metal.jpg",
+                    "file": "assets/img/squared_metal.jpg",
+                    "type": "carpet"
+                },
+                {
+                    "name": "Dark Wood",
+                    "preview": "assets/img/dark_wood.jpg",
+                    "file": "assets/img/dark_wood.jpg",
+                    "type": "carpet"
+                },
+                {
+                    "name": "Pool Table",
+                    "preview": "assets/img/pool_table.jpg",
+                    "file": "assets/img/pool_table.jpg",
                     "type": "carpet"
                 }
             ]

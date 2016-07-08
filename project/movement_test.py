@@ -656,6 +656,7 @@ class Window(QMainWindow):
     def eventFilter(self, source, event):
         if event.type() == QtGui.QMouseEvent.MouseButtonPress:
             self.mesh_select_table.lose_focus()
+            self.ground_texture_select_table.lose_focus()
         elif event.type() == QtGui.QKeyEvent.KeyRelease:
             if event.key() == 67:  # c[lear]
                 self.clear_all()

@@ -29,6 +29,9 @@ class HorizontalSelectionTable(QtWidgets.QTableWidget):
         self.resize(self.width() + TABLE_ITEM_SIZE, self.height())
         self.move(self.pos().x() - (TABLE_ITEM_SIZE / 2.0), self.pos().y())
 
+        while self.mapToGlobal(QtCore.QPoint(self.pos().x(), 0)).x() < TABLE_ITEM_SIZE:
+            self.move(self.pos().x() + 10, self.pos().y())
+
         return new_item
 
 
