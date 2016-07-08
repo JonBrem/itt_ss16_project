@@ -180,29 +180,57 @@ class SelectionTableItem(QtWidgets.QWidget):
         self.name = name
         self.icon = icon
 
-        self.set_icon(icon)
+        self.setup_button(name, icon)
         self.resize(TABLE_ITEM_SIZE - 1, TABLE_ITEM_SIZE - 1)
 
-    def set_icon(self, icon_src):
-        self.icon = icon_src
-        icon_label = QtWidgets.QLabel()
-        icon_label.resize(TABLE_ITEM_SIZE - 1, TABLE_ITEM_SIZE - 1)
-        icon_label.setScaledContents(True)
-        icon_label.setPixmap(QtGui.QPixmap(icon_src))
-
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.setAlignment(QtCore.Qt.AlignCenter)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(icon_label)
         self.setStyleSheet("""
             * {
-                padding: 10px;
-                margin: 0;
+                font-size: 8pt;
             }
 
-            *:hover {
+            *[selectionStyleClass="icon"] {
+                padding: 2px 5px 2px 5px;
+            }
+
+            *[selectionStyleClass="wrapper"]:hover {
                 background-color: #99CCFF;
             }
         """)
 
-        self.setLayout(layout)
+        self.setCursor(QtCore.Qt.PointingHandCursor)
+
+    def setup_button(self, name, icon_src):
+        icon_label = self.set_icon(icon_src)
+
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setAlignment(QtCore.Qt.AlignCenter)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(icon_label)
+
+        name_label = QtWidgets.QLabel()
+        name_label.resize(TABLE_ITEM_SIZE - 1, 8)
+        name_label.setText(name)
+        name_label.setAlignment(QtCore.Qt.AlignCenter)
+        layout.addWidget(name_label)
+
+        wrapper = QtWidgets.QWidget()
+        # any name and value, just so it can be referenced:
+        wrapper.setProperty("selectionStyleClass", "wrapper")
+        wrapper.setLayout(layout)
+
+        wrapper_layout = QtWidgets.QVBoxLayout(self)
+        wrapper_layout.addWidget(wrapper)
+        wrapper_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.setLayout(wrapper_layout)
+
+    def set_icon(self, icon_src):
+        self.icon = icon_src
+        icon_label = QtWidgets.QLabel()
+        icon_label.resize(TABLE_ITEM_SIZE - 11, TABLE_ITEM_SIZE - 11)
+        icon_label.setScaledContents(True)
+        icon_label.setPixmap(QtGui.QPixmap(icon_src))
+        # any name and value, just so it can be referenced:
+        icon_label.setProperty("selectionStyleClass", "icon")
+
+        return icon_label

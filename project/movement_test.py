@@ -250,17 +250,20 @@ class Window(QMainWindow):
                                                                       "Mesh",
                                                                       self.win)
         self.mesh_select_table.setGeometry(10 + 500,
-                                           610 + model_table.TABLE_ITEM_SIZE,
+                                           635 + model_table.TABLE_ITEM_SIZE,
                                            0, model_table.TABLE_ITEM_SIZE)
-
+        self.mesh_select_table.itemSelectionChanged.connect(
+            lambda: self.table_selection_changed(self.mesh_select_table))
         self.read_mesh_data("assets/models_info.json")
 
         self.ground_texture_select_table = model_table.ExpandableSelectionTable(self,
                                                                                 "Texture",
                                                                                 self.win)
         self.ground_texture_select_table.setGeometry(10 + 1.5 * model_table.TABLE_ITEM_SIZE,
-                                                     610 + model_table.TABLE_ITEM_SIZE,
+                                                     635 + model_table.TABLE_ITEM_SIZE,
                                                      0, model_table.TABLE_ITEM_SIZE)
+        self.ground_texture_select_table.itemSelectionChanged.connect(
+            lambda: self.table_selection_changed(self.ground_texture_select_table))
         self.read_texture_data("assets/textures_info.json")
 
         # @TODO: should do this for all buttons etc. except the mesh table
@@ -279,6 +282,16 @@ class Window(QMainWindow):
 
         self.win.y_z_plane_cam_btn.clicked.connect(
             lambda: self.target_cam_to_plane('yz'))
+
+    def table_selection_changed(self, table):
+        other_table = None
+        if table == self.mesh_select_table:
+            other_table = self.ground_texture_select_table
+        else:
+            other_table = self.mesh_select_table
+
+        if len(table.selectedIndexes()) > 0:
+            other_table.lose_focus()
 
     def target_cam_to_plane(self, plane):
             js.SetupScene.target_camera_to_plane(plane)
@@ -694,12 +707,7 @@ class Window(QMainWindow):
             self.mesh_select_table.lose_focus()
             self.ground_texture_select_table.lose_focus()
         elif event.type() == QtGui.QKeyEvent.KeyRelease:
-            if event.key() == 67:  # c[lear]
-                self.clear_all()
-            elif event.key() == 82:  # r[emove]
-                if self.selected_mesh is not None:
-                    self.delete_mesh(self.selected_mesh)
-            elif event.key() == 75:  # [clic]k
+            if event.key() == 75:  # [clic]k
                 self.simulate_click()
             # z (undo if with ctrl)
             elif (source == self.win and event.key() == 90 and
@@ -709,14 +717,6 @@ class Window(QMainWindow):
             elif (source == self.win and event.key() == 89 and
                   int(event.modifiers()) == QtCore.Qt.ControlModifier):
                 self.redo()
-            elif event.key() == 49:  # 1
-                self.set_cursor_position(100.0, 100.0, True)
-            elif event.key() == 50:  # 1
-                self.set_cursor_position(100.0, 200.0, True)
-            elif event.key() == 51:  # 1
-                self.set_cursor_position(200.0, 200.0, True)
-            elif event.key() == 52:  # 1
-                self.set_cursor_position(200.0, 100.0, True)
             else:
                 pass
                 #  print(event.key(), int(event.modifiers()))
