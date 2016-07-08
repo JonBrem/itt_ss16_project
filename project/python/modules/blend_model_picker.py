@@ -189,7 +189,17 @@ class SelectionTableItem(QtWidgets.QWidget):
 
         layout = QtWidgets.QHBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignCenter)
-        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(icon_label)
+        self.setStyleSheet("""
+            * {
+                padding: 10px;
+                margin: 0;
+            }
+
+            *:hover {
+                background-color: #99CCFF;
+            }
+        """)
 
         self.setLayout(layout)
