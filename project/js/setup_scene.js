@@ -20,9 +20,9 @@ var scaleInitialYBottom = undefined;
 var meshes = {};
 var highlightedMesh;
 
-var createScene = function() {
+function createScene(floorX, floorY) {
     // create a basic BJS Scene object
-    var scene = new BABYLON.Scene(engine);
+    scene = new BABYLON.Scene(engine);
 
     // create a FreeCamera, and set its position to (x:0, y:5, z:-10)
     camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5,-10), scene);
@@ -37,21 +37,18 @@ var createScene = function() {
     var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0.1), scene);
 
     // create a built-in "ground" shape; its constructor takes the same 5 params as the sphere's one
-    ground = BABYLON.Mesh.CreateGround('ground1', 6, 6, 2, scene);
+    ground = BABYLON.Mesh.CreateGround('ground1', floorX, floorY, 2, scene);
 
     selectedPlaneMaterial = new BABYLON.StandardMaterial("selectedPlaneMaterial", scene);
     selectedPlaneMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
 
-    createWalls(scene);
-
-    // return the created scene
-    return scene;
+    createWalls(scene, floorX, floorY);
 }
 
 jQuery(document).ready(function($) {
     canvas = document.getElementById('my_canvas');
     engine = new BABYLON.Engine(canvas, true);
-    scene = createScene();
+    createScene(6, 6);
         
     engine.runRenderLoop(function() {
         scene.render();
@@ -67,34 +64,34 @@ jQuery(document).ready(function($) {
     canvas.addEventListener("mousemove", onMouseMove, false);
 });
 
-function createWalls(scene) {
+function createWalls(scene, floorX, floorY) {
 
     walls = []
-    walls[0] = BABYLON.Mesh.CreateGround("wall1", 3, 6, 2, scene);
-    walls[0].position.x = 3;
-    walls[0].position.y = 1.5;
+    walls[0] = BABYLON.Mesh.CreateGround("wall1", floorX / 2, floorY, 2, scene);
+    walls[0].position.x = floorX / 2;
+    walls[0].position.y = floorY / 4;
     walls[0].rotation.z = Math.PI / 2;
 
-    walls[1] = BABYLON.Mesh.CreateGround("wall2", 3, 6, 2, scene);
-    walls[1].position.x = -3;
-    walls[1].position.y = 1.5;
+    walls[1] = BABYLON.Mesh.CreateGround("wall2", floorX / 2, floorY, 2, scene);
+    walls[1].position.x = -floorX / 2;
+    walls[1].position.y = floorY / 4;
     walls[1].rotation.z = -Math.PI / 2;
 
-    walls[2] = BABYLON.Mesh.CreateGround("wall3", 6, 3, 2, scene);
-    walls[2].position.z = 3;
-    walls[2].position.y = 1.5;
+    walls[2] = BABYLON.Mesh.CreateGround("wall3", floorX, floorY / 2, 2, scene);
+    walls[2].position.z = floorX / 2;
+    walls[2].position.y = floorY / 4;
     walls[2].rotation.x = -Math.PI / 2;
 
-    walls[3] = BABYLON.Mesh.CreateGround("wall4", 6, 3, 2, scene);
-    walls[3].position.z = -3;
-    walls[3].position.y = 1.5;
+    walls[3] = BABYLON.Mesh.CreateGround("wall4", floorX, floorY, 2, scene);
+    walls[3].position.z = floorX / 2;
+    walls[3].position.y = floorY / 4;
     walls[3].rotation.x = Math.PI / 2;
 }
 
-
 function addMesh(data, id, images, type, transform, fileName) {
     try {
-        BABYLON.SceneLoader.ImportMesh("", "", "data:" + data, scene, function (newMeshes) {
+        BABYLON.SceneLoader.ImportMesh("", "", "data:" + data, scene,
+        function (newMeshes) {
             newMeshes[0].id = id;
             newMeshes[0].mesh_type = type;
             meshes[id] = newMeshes[0];
@@ -497,4 +494,11 @@ function targetCameraToPlane(plane) {
 
         camera.setTarget(new BABYLON.Vector3(0, 1, 0));
     }
+}
+
+function setRoomDimensions(x, y) {
+    ground = BABYLON.Mesh.CreateGround('ground1', x / 100, y / 100, 2,
+                                       scene);
+
+    python_callback.on_js_console_log('js')
 }

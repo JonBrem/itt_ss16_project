@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from PyQt5 import QtCore, QtGui, Qt, QtWidgets
 from collections import deque
 import pylab as pl
 
@@ -37,6 +38,92 @@ class RingArray(deque):
             super(RingArray, self).append(*args, **kwargs)
         else:
             super(RingArray, self).append(*args, **kwargs)
+
+
+class InputDialog(Qt.QDialog):
+    def __init__(self, parent):
+        super(InputDialog, self).__init__(parent)
+
+        layout = QtWidgets.QVBoxLayout()
+
+        self.setWindowTitle('Room Dimensions')
+
+        self.line_edit_x = QtWidgets.QLineEdit()
+        self.line_edit_y = QtWidgets.QLineEdit()
+
+        self.label_x = QtWidgets.QLabel('x')
+        self.label_y = QtWidgets.QLabel('y')
+
+        button_box = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+
+        layout.addWidget(self.label_x)
+        layout.addWidget(self.line_edit_x)
+        layout.addWidget(self.label_y)
+        layout.addWidget(self.line_edit_y)
+        layout.addWidget(button_box)
+
+        self.setLayout(layout)
+
+    def get_dimensions(self):
+        if self.line_edit_x.text() is '' or self.line_edit_y.text() is '' or \
+                        int(self.line_edit_x.text()) < 0 or \
+                        int(self.line_edit_y.text()) < 0:
+            return -1, -1
+
+        return int(self.line_edit_x.text()), int(self.line_edit_y.text())
+
+    @staticmethod
+    def get_new_room_xz_dimensions(parent=None):
+        dialog = InputDialog(parent)
+        result = dialog.exec_()
+
+        x, y = dialog.get_dimensions()
+
+        if result == QtWidgets.QDialog.Rejected:
+            return x, y, result == QtWidgets.QDialog.Accepted
+        elif result == QtWidgets.QDialog.Accepted:
+            if x == -1:
+                return InputDialog.get_new_room_xz_dimensions()
+
+            return x, y, result == QtWidgets.QDialog.Accepted
+
+
+class FileDialog(QtWidgets.QFileDialog):
+    def __init__(self, parent):
+        super(FileDialog, self).__init__(parent)
+        self.mode = mode
+
+        if mode == 'save':
+            self.setWindowTitle('Save as...')
+        elif mode == 'load':
+            self.setWindowTitle('Load from...')
+
+    @staticmethod
+    def save_json_to_file(scene_json):
+        file_name, filter = FileDialog.getSaveFileName()
+
+        if file_name != '':
+            file = open(file_name, 'w')
+            file.write(scene_json)
+            file.close()
+
+    @staticmethod
+    def load_json_from_file():
+        file_name, filter = FileDialog.getOpenFileName()
+
+        if file_name != '':
+            file = open(file_name, 'r')
+            scene_json = file.read()
+            file.close()
+
+            return scene_json
+        else:
+            return ''
+
 
 
 def moving_average(data, num_samples):
@@ -111,13 +198,13 @@ def sort_points(points):
     return sorted_points
 
 
-def get_projection_transformed_point(x_values, y_values, monitor_width,
-                                     monitor_height, target_point_x,
+def get_projection_transformed_point(src_x_values, src_y_values, dest_width,
+                                     dest_height, target_point_x,
                                      target_point_y):
-    sx1, sy1 = x_values[0], y_values[0]  # tl
-    sx2, sy2 = x_values[1], y_values[1]  # bl
-    sx3, sy3 = x_values[2], y_values[2]  # br
-    sx4, sy4 = x_values[3], y_values[3]  # tr
+    sx1, sy1 = src_x_values[0], src_y_values[0]  # tl
+    sx2, sy2 = src_x_values[1], src_y_values[1]  # bl
+    sx3, sy3 = src_x_values[2], src_y_values[2]  # br
+    sx4, sy4 = src_x_values[3], src_y_values[3]  # tr
 
     source_points_123 = pl.matrix([[sx1, sx2, sx3],
                                    [sy1, sy2, sy3],
@@ -134,9 +221,9 @@ def get_projection_transformed_point(x_values, y_values, monitor_width,
                                 [l, m, t]])
 
     dx1, dy1 = 0, 0
-    dx2, dy2 = 0, monitor_height
-    dx3, dy3 = monitor_width, monitor_height
-    dx4, dy4 = monitor_width, 0
+    dx2, dy2 = 0, dest_height
+    dx3, dy3 = dest_width, dest_height
+    dx4, dy4 = dest_width, 0
 
     dest_points_123 = pl.matrix([[dx1, dx2, dx3],
                                  [dy1, dy2, dy3],

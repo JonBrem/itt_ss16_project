@@ -17,6 +17,7 @@ from python.modules import undo_utility as undo
 from python.modules import js_interface_module as js
 from python.modules import wiimote_interface_module as wii
 from python.modules import blend_model_picker as model_table
+from python.modules import utility_module as um
 
 
 class Window(QMainWindow):
@@ -25,6 +26,7 @@ class Window(QMainWindow):
         self.progress = 0
         self.app = app
 
+        self.url = url
         self.monitor_width = 1920
         self.monitor_height = 1080
 
@@ -33,16 +35,25 @@ class Window(QMainWindow):
         self.win = uic.loadUi('ui/room_design.ui')
         self.wv = QWebView(self.win)
 
+        self.menu_new = self.win.actionNew
+        self.menu_save = self.win.actionSave
+        self.menu_load = self.win.actionLoad
+
+        self.menu_new.triggered.connect(self.on_new_action)
+        self.menu_save.triggered.connect(self.on_save_action)
+        self.menu_load.triggered.connect(self.on_load_action)
+
         js.SetupScene.init(self.wv)
 
-        self.wv.setGeometry(10, 10, 1000, 650)
+        self.wv.setGeometry(30, 30, 1000, 650)
         js.SetupScene.apply_callback('python_callback', self)
 
-        self.wv.load(url)
+        self.wv.load(self.url)
 
         self.list_widget = self.win.list_widget
         self.mesh_select_table = None
         self.model_table = None
+        self.ground_texture_select_table = None
 
         self.setup_ui()
 
@@ -74,6 +85,21 @@ class Window(QMainWindow):
 
         self.selected_plane = "xz"
         self.select_plane(self.selected_plane)
+
+    def on_new_action(self):
+        x, y, ok = um.InputDialog.get_new_room_xz_dimensions()
+
+        if ok:
+            js.SetupScene.create_new_scene(x, y)
+
+    def on_save_action(self):
+        js.SetupScene.save_state("save")
+
+    def on_load_action(self):
+        scene_json = um.FileDialog.load_json_from_file()
+
+        if scene_json != '':
+            self.load_state(scene_json)
 
     def setup_wiimote(self):
         self.wiimote.a_button_clicked.connect(
@@ -321,29 +347,6 @@ class Window(QMainWindow):
 
         js.SetupScene.set_selected_plane(which)
 
-    def viewSource(self):
-        """
-        never called?
-        :return:
-        """
-        accessManager = self.wv.page().networkAccessManager()
-        request = QNetworkRequest(self.wv.url())
-        reply = accessManager.get(request)
-        reply.finished.connect(self.slotSourceDownloaded)
-
-    def slotSourceDownloaded(self):
-        """
-        never called?
-        :return:
-        """
-        reply = self.sender()
-        self.textEdit = QTextEdit()
-        self.textEdit.setAttribute(Qt.WA_DeleteOnClose)
-        self.textEdit.show()
-        self.textEdit.setPlainText(QTextStream(reply).readAll())
-        self.textEdit.resize(600, 400)
-        reply.deleteLater()
-
     def mesh_selection_changed(self, b=0):
         selected = self.list_widget.selectedIndexes()
         if len(selected) > 0:
@@ -512,6 +515,8 @@ class Window(QMainWindow):
         if identifier == "undo":
             self.undo_utility.set_first_state_at_undo(scene_json)
             self.undo()
+        elif identifier == "save":
+            um.FileDialog.save_json_to_file(scene_json)
         else:
             self.undo_utility.add_action(identifier, scene_json)
 

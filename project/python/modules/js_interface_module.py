@@ -102,6 +102,11 @@ class SetupScene:
         SetupScene.webview.evaluateJavaScript("targetCameraToPlane('" + plane +
                                               "');")
 
+    @staticmethod
+    def create_new_scene(x, y):
+        SetupScene.webview.evaluateJavaScript("createScene('" + str(x / 100) +
+                                              "', '" + str(y / 100) + "');")
+
 
 def deserialize_list(js_list_as_string):
     l = []
