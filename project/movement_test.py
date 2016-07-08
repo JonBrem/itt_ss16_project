@@ -429,7 +429,8 @@ class Window(QMainWindow):
         rel_cursor = self.get_cursor_position(False)
         abs_cursor = self.get_cursor_position(True)
 
-        self.simulate_left_mouse_event(QtGui.QMouseEvent.MouseMove, rel_cursor, abs_cursor)
+        self.simulate_left_mouse_event(QtGui.QMouseEvent.MouseMove, rel_cursor,
+                                       abs_cursor)
 
     def simulate_left_mouse_event(self, ev_type, rel_cursor, abs_cursor):
         clicked_child = self.win.childAt(rel_cursor)
@@ -518,11 +519,12 @@ class Window(QMainWindow):
         self.clear_all()
         as_data = json.loads(scene_json)
         for mesh in as_data["meshes"]:
-            self.request_add_mesh(mesh["fileName"], mesh["type"], mesh["id"], json.dumps({
-                "pos": mesh["pos"],
-                "rot": mesh["rot"],
-                "scale": mesh["scale"]
-                }), True)
+            self.request_add_mesh(mesh["fileName"], mesh["type"], mesh["id"],
+                                  json.dumps({
+                                    "pos": mesh["pos"],
+                                    "rot": mesh["rot"],
+                                    "scale": mesh["scale"]
+                                    }), True)
 
         if as_data["selection"] is not "None":
             self.select_mesh(as_data["selection"])
@@ -544,7 +546,8 @@ class Window(QMainWindow):
         # this needs a refactor :D
         # what it does is this: for every mesh, checks if the mesh
         # was there before. if not, creates it at the specified pos/rot/scale.
-        # if it was, checks if there were changes in pos/rot/scale; applies them, if so.
+        # if it was, checks if there were changes in pos/rot/scale; applies
+        # them, if so.
         for mesh in next_state["meshes"]:
             found_mesh = False
             for other_mesh in current_state["meshes"]:
@@ -554,11 +557,12 @@ class Window(QMainWindow):
                     break
 
             if not found_mesh:
-                self.request_add_mesh(mesh["fileName"], mesh["type"], mesh["id"], json.dumps({
-                    "pos": mesh["pos"],
-                    "rot": mesh["rot"],
-                    "scale": mesh["scale"]
-                }), True)
+                self.request_add_mesh(mesh["fileName"], mesh["type"],
+                                      mesh["id"], json.dumps({
+                                        "pos": mesh["pos"],
+                                        "rot": mesh["rot"],
+                                        "scale": mesh["scale"]
+                                      }), True)
 
         if next_state["selection"] is not "None":
             self.select_mesh(next_state["selection"])
