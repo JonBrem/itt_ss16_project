@@ -7048,8 +7048,13 @@ var BABYLON;
                 };
                 if (!(fromData instanceof Array))
                     BABYLON.Tools.LoadImage(url, onload, onerror, scene.database);
-                else
-                    BABYLON.Tools.LoadImage(buffer, onload, onerror, scene.database);
+                else {
+                    if (url.substr(0, 5) === "data:") {
+                        BABYLON.Tools.LoadImage(url, onload, onerror, scene.database);
+                    } else {
+                        BABYLON.Tools.LoadImage(buffer, onload, onerror, scene.database);
+                    }
+                }
             }
             return texture;
         };

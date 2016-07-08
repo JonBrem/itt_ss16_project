@@ -32,19 +32,21 @@ class HorizontalSelectionTable(QtWidgets.QTableWidget):
         return new_item
 
 
-class CategoryPickerTable(HorizontalSelectionTable):
+class ExpandableSelectionTable(HorizontalSelectionTable):
 
-    def __init__(self, mesh_creator, parent=None):
-        super(CategoryPickerTable, self).__init__(parent)
+    def __init__(self, item_creator, child_type="Mesh", parent=None):
+        super(ExpandableSelectionTable, self).__init__(parent)
         self.category_items = []
         self.category_data = []
-        self.mesh_creator = mesh_creator
+        self.item_creator = item_creator
+
+        self.child_type = child_type
 
         self.showing_children = False
-        self.mesh_table = None
+        self.child_table = None
 
     def add_item(self, category_data):
-        new_item = super(CategoryPickerTable, self)\
+        new_item = super(ExpandableSelectionTable, self)\
             .add_item(category_data)
         self.category_items.append(new_item)
         self.category_data.append(category_data)
@@ -61,7 +63,7 @@ class CategoryPickerTable(HorizontalSelectionTable):
                                    selected_index)
                 self.showing_children = True
             else:
-                self.mesh_table.setParent(None)
+                self.child_table.setParent(None)
                 self.show_children(self.category_data[selected_index],
                                    selected_index)
         else:
@@ -70,67 +72,100 @@ class CategoryPickerTable(HorizontalSelectionTable):
                 self.showing_children = False
 
     def show_children(self, category_data, index):
-        self.mesh_table = MeshPickerTable(self.mesh_creator, self.parent())
-        # TODO refactor formula
-        self.mesh_table.setGeometry(self.pos().x() + self.width() / 2 +
-                                    (index - (len(self.category_data) - 1) /
-                                    2) * TABLE_ITEM_SIZE,
-                                    self.pos().y() - TABLE_ITEM_SIZE, 0,
-                                    TABLE_ITEM_SIZE)
-        for mesh in category_data["models"]:
-            self.mesh_table.add_item(mesh)
+        if self.child_type == "Mesh":
+            self.child_table = MeshPickerTable(self.item_creator, self.parent())
+        else:
+            self.child_table = TexturePickerTable(self.item_creator, self.parent())
 
-        self.mesh_table.raise_()
-        self.mesh_table.show()
+        # TODO refactor formula
+        self.child_table.setGeometry(self.pos().x() + self.width() / 2 +
+                                     (index - (len(self.category_data) - 1) /
+                                     2) * TABLE_ITEM_SIZE,
+                                     self.pos().y() - TABLE_ITEM_SIZE, 0,
+                                     TABLE_ITEM_SIZE)
+        for mesh in category_data["models"]:
+            self.child_table.add_item(mesh)
+
+        self.child_table.raise_()
+        self.child_table.show()
         self.wrap_child_selection_changed()
 
     def hide_children(self):
-        if self.mesh_table is not None:
-            self.mesh_table.setParent(None)
-            self.mesh_table = None
+        if self.child_table is not None:
+            self.child_table.setParent(None)
+            self.child_table = None
         self.showing_children = False
 
     def wrap_child_selection_changed(self):
-        orig_func = self.mesh_table.selectionChanged
+        orig_func = self.child_table.selectionChanged
 
         def wrapped(a, b):
             orig_func(a, b)
-            if self.mesh_table is not None:
-                self.mesh_table.setParent(None)
-                self.mesh_table = None
+            if self.child_table is not None:
+                self.child_table.setParent(None)
+                self.child_table = None
                 self.showing_children = False
                 self.clearSelection()
-        self.mesh_table.selectionChanged = wrapped
+        self.child_table.selectionChanged = wrapped
 
     def lose_focus(self):
         self.clearSelection()
         self.hide_children()
 
 
-class MeshPickerTable(HorizontalSelectionTable):
+class ChildSelectionTable(HorizontalSelectionTable):
+
+    def __init__(self, parent=None):
+        super(ChildSelectionTable, self).__init__(parent)
+        self.item_data = []
+        self.created_mesh = False
+
+    def add_item(self, item_data):
+        if "preview" in item_data:
+            item_data["img"] = item_data["preview"]
+        new_item = super(ChildSelectionTable, self)\
+            .add_item(item_data)
+        self.item_data.append(item_data)
+        return new_item
+
+    def get_item(self, index):
+        return self.item_data[index]
+
+
+class MeshPickerTable(ChildSelectionTable):
 
     def __init__(self, mesh_creator, parent=None):
         super(MeshPickerTable, self).__init__(parent)
-        self.mesh_data = []
         self.mesh_creator = mesh_creator
         self.created_mesh = False
-
-    def add_item(self, mesh_item):
-        if "preview" in mesh_item:
-            mesh_item["img"] = mesh_item["preview"]
-        new_item = super(MeshPickerTable, self)\
-            .add_item(mesh_item)
-        self.mesh_data.append(mesh_item)
-        return new_item
 
     def selectionChanged(self, a=0, b=0):
         selectedIndexes = self.selectedIndexes()
         if len(selectedIndexes) > 0 and not self.created_mesh:
             self.created_mesh = True
             selected_index = selectedIndexes[0].column()
+            item = super(MeshPickerTable, self).get_item(selected_index)
             self.mesh_creator.request_add_mesh(
-                self.mesh_data[selected_index]["file"],
-                self.mesh_data[selected_index]["name"])
+                item["file"], item["name"])
+        else:
+            pass
+
+
+class TexturePickerTable(ChildSelectionTable):
+
+    def __init__(self, texture_creator, parent=None):
+        super(TexturePickerTable, self).__init__(parent)
+        self.texture_creator = texture_creator
+        self.created_mesh = False
+
+    def selectionChanged(self, a=0, b=0):
+        selectedIndexes = self.selectedIndexes()
+        if len(selectedIndexes) > 0 and not self.created_mesh:
+            self.created_mesh = True
+            selected_index = selectedIndexes[0].column()
+            item = super(TexturePickerTable, self).get_item(selected_index)
+            self.texture_creator.request_change_texture(
+                item["file"], item["name"], item["type"])
         else:
             pass
 

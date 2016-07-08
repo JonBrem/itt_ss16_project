@@ -1,0 +1,28 @@
+{
+    "categories": [
+        {
+            "name": "Wallpaper",
+            "img": "assets/img/question-mark-4-128.png",
+            "models": [
+                {
+                    "name": "Flower",
+                    "preview": "assets/img/bunch-flowers-128.png",
+                    "file": "assets/img/stolek-barowy-bst-9449-model-3d-fameg.jpg",
+                    "type": "wallpaper"
+                }
+            ]
+        },
+        {
+            "name": "Carpet",
+            "img": "assets/img/question-mark-4-128.png",
+            "models": [
+                {
+                    "name": "Flower",
+                    "preview": "assets/img/bunch-flowers-128.png",
+                    "file": "assets/img/stolek-barowy-bst-9449-model-3d-fameg.jpg",
+                    "type": "carpet"
+                }
+            ]
+        }
+    ]
+}

@@ -107,6 +107,12 @@ class SetupScene:
         SetupScene.webview.evaluateJavaScript("createScene('" + str(x / 100) +
                                               "', '" + str(y / 100) + "');")
 
+    @staticmethod
+    def set_texture(type_, texture_name, texture_data):
+        SetupScene.webview.evaluateJavaScript(
+            "setTextureData('" + type_ + "'," +
+            "'" + texture_name + "',\"" + texture_data + "\");")
+
 
 def deserialize_list(js_list_as_string):
     l = []

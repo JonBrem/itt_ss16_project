@@ -245,13 +245,22 @@ class Window(QMainWindow):
         self.list_widget.selectionModel().selectionChanged.connect(
             self.mesh_selection_changed)
 
-        self.mesh_select_table = model_table.CategoryPickerTable(self,
-                                                                 self.win)
+        self.mesh_select_table = model_table.ExpandableSelectionTable(self,
+                                                                      "Mesh",
+                                                                      self.win)
         self.mesh_select_table.setGeometry(10 + 500,
                                            610 + model_table.TABLE_ITEM_SIZE,
                                            0, model_table.TABLE_ITEM_SIZE)
 
         self.read_mesh_data("assets/models_info.json")
+
+        self.ground_texture_select_table = model_table.ExpandableSelectionTable(self,
+                                                                                "Texture",
+                                                                                self.win)
+        self.ground_texture_select_table.setGeometry(10 + 1.5 * model_table.TABLE_ITEM_SIZE,
+                                                     610 + model_table.TABLE_ITEM_SIZE,
+                                                     0, model_table.TABLE_ITEM_SIZE)
+        self.read_texture_data("assets/textures_info.json")
 
         # @TODO: should do this for all buttons etc. except the mesh table
         self.wv.installEventFilter(self)
@@ -278,6 +287,12 @@ class Window(QMainWindow):
             mesh_data = json.loads(mesh_data_file.read())
             for category in mesh_data['categories']:
                 self.mesh_select_table.add_item(category)
+
+    def read_texture_data(self, file_path):
+        with open(file_path, 'r') as texture_data_file:
+            texture_data = json.loads(texture_data_file.read())
+            for category in texture_data['categories']:
+                self.ground_texture_select_table.add_item(category)
 
     def request_add_mesh(self, mesh_file_name, type_, name=None,
                          transform="null", from_load=False):
@@ -333,6 +348,11 @@ class Window(QMainWindow):
             name = original_name + str(index)
             index += 1
         js.SetupScene.duplicate_mesh(mesh_id, name)
+
+    def request_change_texture(self, file_name, name, type_):
+        base64data = "data:image/jpg;base64," + \
+            str(base64.b64encode(open(file_name, "rb").read()))[2:]
+        js.SetupScene.set_texture(type_, name, base64data)
 
     def select_plane(self, which):
         self.selected_plane = which
