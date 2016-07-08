@@ -2,7 +2,7 @@
     "categories": [
         {
             "name": "Wallpaper",
-            "img": "assets/img/question-mark-4-128.png",
+            "img": "assets/img/select_walls.png",
             "models": [
                 {
                     "name": "White Wall",
@@ -50,7 +50,7 @@
         },
         {
             "name": "Carpet",
-            "img": "assets/img/question-mark-4-128.png",
+            "img": "assets/img/select_ground.png",
             "models": [
                 {
                     "name": "Bright Carpet",

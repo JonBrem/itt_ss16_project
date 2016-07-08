@@ -175,9 +175,29 @@
             "img": "assets/img/bunch-flowers-128.png",
             "models": [
                 {
-                    "name": "Flower",
+                    "name": "Plant 1",
                     "preview": "assets/img/bunch-flowers-128.png",
-                    "file": "assets/models/box.babylon"
+                    "file": "assets/models/plant_01.babylon"
+                },
+                {
+                    "name": "Plant 2",
+                    "preview": "assets/img/bunch-flowers-128.png",
+                    "file": "assets/models/plant_02.babylon"
+                },
+                {
+                    "name": "Plant 3",
+                    "preview": "assets/img/bunch-flowers-128.png",
+                    "file": "assets/models/flower_03.babylon"
+                },
+                {
+                    "name": "Art",
+                    "preview": "assets/img/bunch-flowers-128.png",
+                    "file": "assets/models/weird_red_art.babylon"
+                },
+                {
+                    "name": "Teddy",
+                    "preview": "assets/img/bunch-flowers-128.png",
+                    "file": "assets/models/bear.babylon"
                 }
             ]
         },
@@ -186,10 +206,36 @@
             "img": "assets/img/question-mark-4-128.png",
             "models": [
                 {
-                    "name": "Dunno",
+                    "name": "Stove",
                     "preview": "assets/img/question-mark-4-128.png",
-                    "file": "assets/models/box.babylon"
+                    "file": "assets/models/stove.babylon"
+                },
+                {
+                    "name": "Black radiator",
+                    "preview": "assets/img/question-mark-4-128.png",
+                    "file": "assets/models/radiator_black.babylon"
+                },
+                {
+                    "name": "White radiator",
+                    "preview": "assets/img/question-mark-4-128.png",
+                    "file": "assets/models/radiator_white.babylon"
+                },
+                {
+                    "name": "Blackboard",
+                    "preview": "assets/img/question-mark-4-128.png",
+                    "file": "assets/models/blackboard.babylon"
+                },
+                {
+                    "name": "Whiteboard",
+                    "preview": "assets/img/question-mark-4-128.png",
+                    "file": "assets/models/whiteboard.babylon"
+                },
+                {
+                    "name": "Flip Chart",
+                    "preview": "assets/img/question-mark-4-128.png",
+                    "file": "assets/models/flipchart.babylon"
                 }
+
             ]
         }
 
