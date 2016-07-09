@@ -104,32 +104,32 @@
             "models": [
                 {
                     "name": "Computer",
-                    "preview": "assets/img/tv-128.png",
+                    "preview": "assets/img/computer_tower.jpg",
                     "file": "assets/models/computer_tower.babylon"
                 },
                 {
                     "name": "Laptop",
-                    "preview": "assets/img/tv-128.png",
+                    "preview": "assets/img/laptop.jpg",
                     "file": "assets/models/laptop.babylon"
                 },
                 {
                     "name": "Monitor",
-                    "preview": "assets/img/tv-128.png",
+                    "preview": "assets/img/monitor.jpg",
                     "file": "assets/models/monitor.babylon"
                 },
                 {
                     "name": "Coffe Machine",
-                    "preview": "assets/img/tv-128.png",
+                    "preview": "assets/img/coffee_machine.jpg",
                     "file": "assets/models/coffee_machine.babylon"
                 },
                 {
                     "name": "Microwave",
-                    "preview": "assets/img/tv-128.png",
+                    "preview": "assets/img/microwave.jpg",
                     "file": "assets/models/microwave.babylon"
                 },
                 {
                     "name": "Old TV",
-                    "preview": "assets/img/tv-128.png",
+                    "preview": "assets/img/old_tv.jpg",
                     "file": "assets/models/old_tv.babylon"
                 }
             ]
@@ -176,27 +176,27 @@
             "models": [
                 {
                     "name": "Plant 1",
-                    "preview": "assets/img/bunch-flowers-128.png",
+                    "preview": "assets/img/plant1.jpg",
                     "file": "assets/models/plant_01.babylon"
                 },
                 {
                     "name": "Plant 2",
-                    "preview": "assets/img/bunch-flowers-128.png",
+                    "preview": "assets/img/plant2.jpg",
                     "file": "assets/models/plant_02.babylon"
                 },
                 {
                     "name": "Plant 3",
-                    "preview": "assets/img/bunch-flowers-128.png",
+                    "preview": "assets/img/l56179-house-plant-3-24261.jpg",
                     "file": "assets/models/flower_03.babylon"
                 },
                 {
                     "name": "Art",
-                    "preview": "assets/img/bunch-flowers-128.png",
+                    "preview": "assets/img/loft-design-system-dekor-03.jpg",
                     "file": "assets/models/weird_red_art.babylon"
                 },
                 {
                     "name": "Teddy",
-                    "preview": "assets/img/bunch-flowers-128.png",
+                    "preview": "assets/img/l15784-toon-teddy-bear-57474.jpg",
                     "file": "assets/models/bear.babylon"
                 }
             ]
@@ -207,32 +207,32 @@
             "models": [
                 {
                     "name": "Stove",
-                    "preview": "assets/img/question-mark-4-128.png",
+                    "preview": "assets/img/Kuchnia-Falcon-Classic-110-Deluxe.jpg",
                     "file": "assets/models/stove.babylon"
                 },
                 {
                     "name": "Black radiator",
-                    "preview": "assets/img/question-mark-4-128.png",
+                    "preview": "assets/img/grzejnik-scienny-geo-60x100.jpg",
                     "file": "assets/models/radiator_black.babylon"
                 },
                 {
                     "name": "White radiator",
-                    "preview": "assets/img/question-mark-4-128.png",
+                    "preview": "assets/img/grzejnik-scienny-strada-15-50x50.jpg",
                     "file": "assets/models/radiator_white.babylon"
                 },
                 {
                     "name": "Blackboard",
-                    "preview": "assets/img/question-mark-4-128.png",
+                    "preview": "assets/img/blackboard.jpg",
                     "file": "assets/models/blackboard.babylon"
                 },
                 {
                     "name": "Whiteboard",
-                    "preview": "assets/img/question-mark-4-128.png",
+                    "preview": "assets/img/whiteboard.jpg",
                     "file": "assets/models/whiteboard.babylon"
                 },
                 {
                     "name": "Flip Chart",
-                    "preview": "assets/img/question-mark-4-128.png",
+                    "preview": "assets/img/flipchart.jpg",
                     "file": "assets/models/flipchart.babylon"
                 }
 
