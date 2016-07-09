@@ -63,7 +63,17 @@
      </rect>
     </property>
     <property name="text">
-     <string>XY  |_</string>
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../assets/img/translate_x_y.png</normaloff>../assets/img/translate_x_y.png</iconset>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>60</width>
+      <height>60</height>
+     </size>
     </property>
    </widget>
    <widget class="QPushButton" name="x_z_plane_btn">
@@ -76,7 +86,17 @@
      </rect>
     </property>
     <property name="text">
-     <string>XZ  /_</string>
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../assets/img/translate_x_z.png</normaloff>../assets/img/translate_x_z.png</iconset>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>60</width>
+      <height>60</height>
+     </size>
     </property>
    </widget>
    <widget class="QPushButton" name="y_z_plane_btn">
@@ -89,7 +109,17 @@
      </rect>
     </property>
     <property name="text">
-     <string>YZ  |/</string>
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../assets/img/translate_y_z.png</normaloff>../assets/img/translate_y_z.png</iconset>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>60</width>
+      <height>60</height>
+     </size>
     </property>
    </widget>
    <widget class="QPushButton" name="x_y_plane_cam_btn">
@@ -102,7 +132,17 @@
      </rect>
     </property>
     <property name="text">
-     <string>Cam XY  |_</string>
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../assets/img/cam_focus_x_y.png</normaloff>../assets/img/cam_focus_x_y.png</iconset>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>60</width>
+      <height>60</height>
+     </size>
     </property>
    </widget>
    <widget class="QPushButton" name="y_z_plane_cam_btn">
@@ -115,7 +155,17 @@
      </rect>
     </property>
     <property name="text">
-     <string>Cam YZ  |/</string>
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../assets/img/cam_focus_y_z.png</normaloff>../assets/img/cam_focus_y_z.png</iconset>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>60</width>
+      <height>60</height>
+     </size>
     </property>
    </widget>
    <widget class="QPushButton" name="x_z_plane_cam_btn">
@@ -128,7 +178,17 @@
      </rect>
     </property>
     <property name="text">
-     <string>Cam XZ  /_</string>
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../assets/img/cam_focus_x_z.png</normaloff>../assets/img/cam_focus_x_z.png</iconset>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>60</width>
+      <height>60</height>
+     </size>
     </property>
    </widget>
    <widget class="QLabel" name="scene_obj_label">
