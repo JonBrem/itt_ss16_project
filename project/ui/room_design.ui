@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Room Creator</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QListWidget" name="list_widget">
@@ -27,9 +27,9 @@
    <widget class="QPushButton" name="btn_connect">
     <property name="geometry">
      <rect>
-      <x>1160</x>
-      <y>710</y>
-      <width>81</width>
+      <x>1200</x>
+      <y>640</y>
+      <width>91</width>
       <height>22</height>
      </rect>
     </property>
@@ -40,10 +40,10 @@
    <widget class="QLineEdit" name="line_edit_address">
     <property name="geometry">
      <rect>
-      <x>1130</x>
-      <y>680</y>
-      <width>131</width>
-      <height>22</height>
+      <x>1040</x>
+      <y>630</y>
+      <width>151</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
@@ -254,6 +254,32 @@
     </property>
     <property name="text">
      <string>Add Object:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="view_plane_label_2">
+    <property name="geometry">
+     <rect>
+      <x>1040</x>
+      <y>610</y>
+      <width>111</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>WiiMote:</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="explain_controls_btn">
+    <property name="geometry">
+     <rect>
+      <x>1040</x>
+      <y>690</y>
+      <width>151</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Explain Controls</string>
     </property>
    </widget>
   </widget>

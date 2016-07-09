@@ -270,6 +270,8 @@ class Window(QMainWindow):
         self.wv.installEventFilter(self)
         self.win.installEventFilter(self)
 
+        self.win.explain_controls_btn.clicked.connect(self.explain_controls)
+
         self.win.x_y_plane_btn.clicked.connect(lambda: self.select_plane("xy"))
         self.win.x_z_plane_btn.clicked.connect(lambda: self.select_plane("xz"))
         self.win.y_z_plane_btn.clicked.connect(lambda: self.select_plane("yz"))
@@ -699,6 +701,17 @@ class Window(QMainWindow):
         if redone_state is not None:
             # self.load_state(redone_state["state"])
             self.load_changed_state(json.loads(current_state["state"]), json.loads(redone_state["state"]))
+
+    def explain_controls(self):
+        msg_box = QtWidgets.QMessageBox()
+        pixmap = QtGui.QPixmap()
+        pixmap.load("assets/img/wiimote_explain.png")
+        pixmap = pixmap.scaled(600, 800)
+        msg_box.setWindowTitle("WiiMote Controls - Info")
+        msg_box.setIconPixmap(pixmap)
+        msg_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
+        msg_box.show()
+        msg_box.exec_()
 
     # event filter that causes mesh selection table to lose focus
     # (if it has focus)
