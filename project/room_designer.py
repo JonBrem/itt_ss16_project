@@ -72,6 +72,7 @@ class Window(QMainWindow):
         self.initial_accelerometer_data = None
 
         self.wiimote = wii.Wiimote(50, self.monitor_width, self.monitor_height)
+        self.dpad_button_states = {}
         self.setup_wiimote()
 
         self.last_angle_y_rotation = 0.0
@@ -119,6 +120,9 @@ class Window(QMainWindow):
         self.wiimote.one_button_clicked.connect(self.request_undo)
         self.wiimote.two_button_clicked.connect(self.redo)
 
+        self.dpad_button_states = {
+            Qt.Key_Up: False, Qt.Key_Down: False,
+            Qt.Key_Left: False, Qt.Key_Right: False, }
         self.wiimote.up_button_clicked.connect(
             lambda: self.on_wm_dpad_button_press(Qt.Key_Up))
         self.wiimote.up_button_released.connect(
@@ -170,10 +174,13 @@ class Window(QMainWindow):
             self.handle_mesh_rotation_y(data)
 
     def on_wm_dpad_button_press(self, button):
+        self.dpad_button_states[button] = True
         self.simulate_camera_event(QtGui.QKeyEvent.KeyPress, button)
 
     def on_wm_dpad_button_release(self, button):
-        self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, button)
+        if self.dpad_button_states[button]:  # = last frame: button was pressed
+            self.simulate_camera_event(QtGui.QKeyEvent.KeyRelease, button)
+        self.dpad_button_states[button] = False
 
     def on_wm_plus_button_press(self):
         if self.selected_mesh is not None:
