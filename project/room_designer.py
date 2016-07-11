@@ -2,16 +2,14 @@
 
 import os
 
-from PyQt5 import uic, QtGui, QtCore, Qt, QtWidgets, QtWebKit
-from PyQt5.QtCore import QFile, QIODevice, Qt, QTextStream, QUrl
-from PyQt5.QtWidgets import (QAction, QApplication, QLineEdit, QMainWindow,
-        QSizePolicy, QStyle, QTextEdit)
-from PyQt5.QtNetwork import QNetworkProxyFactory, QNetworkRequest
-from PyQt5.QtWebKitWidgets import QWebPage, QWebView
+from PyQt5 import uic, QtGui, QtCore, Qt, QtWidgets
+from PyQt5.QtCore import QUrl
+from PyQt5.QtWidgets import (QApplication, QMainWindow)
+from PyQt5.QtNetwork import QNetworkProxyFactory
+from PyQt5.QtWebKitWidgets import QWebView
 
 import numpy as np
 import json
-import base64
 
 from python.modules import undo_utility as undo
 from python.modules import js_interface_module as js
@@ -237,11 +235,6 @@ class Window(QMainWindow):
         address = self.address_line_edit.text()
         self.wiimote.connect(address)
 
-    def perform_action_of_child_element(self):
-        item = self.tree_widget.currentItem()
-        if item.childCount() == 0:
-            print(item.text(0) + ' selected')
-
     def setup_ui(self):
         self.list_widget.selectionModel().selectionChanged.connect(
             self.mesh_selection_changed)
@@ -266,7 +259,7 @@ class Window(QMainWindow):
             lambda: self.table_selection_changed(self.ground_texture_select_table))
         self.read_texture_data("assets/textures_info.json")
 
-        # @TODO: should do this for all buttons etc. except the mesh table
+        # should do this for all buttons etc. except the mesh table
         self.wv.installEventFilter(self)
         self.win.installEventFilter(self)
 
@@ -315,41 +308,15 @@ class Window(QMainWindow):
         if not from_load:
             js.SetupScene.save_state("add_mesh")
 
-        if name is None:
-            name = type_
-        original_name = name
-        index = 1
-        while name in self.meshes:
-            name = original_name + str(index)
-            index += 1
+        name = um.get_name_for_new_mesh(name, type_, self.meshes)
 
         mesh_file = open(mesh_file_name)
-        only_json = ""
-
-        data = '('
-        for line in mesh_file:
-            data += "'" + line[:-1] + "' + \n"
-            only_json += line
+        data, json_data = um.read_file_as_js_string(mesh_file, True)
         mesh_file.close()
-        data += "'')"
 
-        images = {}
-        # pre-load any jpeg data for js:
-        json_data = json.loads(only_json)
-        if "materials" in json_data:
-            for material in json_data["materials"]:
-                if "diffuseTexture" in material:
-                    if "name" in material["diffuseTexture"]:
-                        file_name = "assets/models/" + \
-                                    material["diffuseTexture"]["name"]
-                        if os.path.isfile(file_name):
-                            jpeg_file = "data:image/jpg;base64," +\
-                                str(base64.b64encode(
-                                    open(file_name, "rb").read()))[2:]
-                            images[material["diffuseTexture"]["name"]] = \
-                                jpeg_file
+        texture_images = um.load_images_as_base64(json_data)
 
-        js.SetupScene.add_mesh(data, name, images, type_, transform,
+        js.SetupScene.add_mesh(data, name, texture_images, type_, transform,
                                mesh_file_name)
 
     def duplicate(self, b=None):
@@ -358,19 +325,14 @@ class Window(QMainWindow):
 
     def request_duplicate_mesh(self, mesh_id):
         js.SetupScene.save_state("duplicate_mesh")
-        name = original_name = mesh_id + "_copy"
-        index = 1
-        while name in self.meshes:
-            name = original_name + str(index)
-            index += 1
+        name = um.get_name_for_copy(mesh_id, self.meshes)
         js.SetupScene.duplicate_mesh(mesh_id, name)
 
     def request_change_texture(self, file_name, name, type_, create_undo_point=True):
         if create_undo_point:
             js.SetupScene.save_state("change_texture")
 
-        base64data = "data:image/jpg;base64," + \
-            str(base64.b64encode(open(file_name, "rb").read()))[2:]
+        base64data = um.load_single_img_as_base64(file_name)
         js.SetupScene.set_texture(type_, name, base64data, file_name)
 
     def select_plane(self, which):
@@ -467,13 +429,6 @@ class Window(QMainWindow):
         self.simulate_left_mouse_event(QtGui.QMouseEvent.MouseButtonRelease,
                                        rel_cursor, abs_cursor)
 
-    def simulate_mouse_move(self):
-        rel_cursor = self.get_cursor_position(False)
-        abs_cursor = self.get_cursor_position(True)
-
-        self.simulate_left_mouse_event(QtGui.QMouseEvent.MouseMove, rel_cursor,
-                                       abs_cursor)
-
     def simulate_left_mouse_event(self, ev_type, rel_cursor, abs_cursor):
         clicked_child = self.win.childAt(rel_cursor)
         if clicked_child is None:
@@ -560,6 +515,9 @@ class Window(QMainWindow):
             self.undo_utility.add_action(identifier, scene_json)
 
     def load_state(self, scene_json):
+        """ Load the state in scene_json (JSON String) while completely discarding
+            the current state. Cannot be undone.
+        """
         self.clear_all()
         as_data = json.loads(scene_json)
 
@@ -573,28 +531,17 @@ class Window(QMainWindow):
                                     "scale": mesh["scale"]
                                     }), True)
 
-        if as_data["selection"] is not "None":
-            self.select_mesh(as_data["selection"])
-        else:
-            self.de_select_meshes()
+        self.load_selection(as_data)
 
-        if "walls" in as_data:
-            self.request_change_texture(as_data["walls"]["fileName"],
-                                        as_data["walls"]["textureName"],
-                                        as_data["walls"]["type"], False)
-        else:
-            js.SetupScene.remove_texture("walls")
-
-        if "floor" in as_data:
-            self.request_change_texture(as_data["floor"]["fileName"],
-                                        as_data["floor"]["textureName"],
-                                        as_data["floor"]["type"], False)
-        else:
-            js.SetupScene.remove_texture("carpet")
+        self.load_floor_and_walls(as_data)
 
     def load_changed_state(self, current_state, next_state):
-        # the other method had performance problems if there were many meshes
-        # this one only updates meshes if there was a change in the scene!
+        """ Loads the "next_state" (JSON Object / dicts and lists) from the current state.
+            Is faster than load_state & can be undone; use this method for "undo" and "redo"
+            (when there are likely to be few changes between the states & undo must be possible).
+        """
+
+        # delete meshes if they are not in the next state
         for mesh in current_state["meshes"]:
             found_mesh = False
             for other_mesh in next_state["meshes"]:
@@ -604,17 +551,13 @@ class Window(QMainWindow):
             if not found_mesh:
                 self.delete_mesh(mesh["id"])
 
-        # this needs a refactor :D
-        # what it does is this: for every mesh, checks if the mesh
-        # was there before. if not, creates it at the specified pos/rot/scale.
-        # if it was, checks if there were changes in pos/rot/scale; applies
-        # them, if so.
+        # transform meshes for the next state / create them, if they don't exist yet
         for mesh in next_state["meshes"]:
             found_mesh = False
-            for other_mesh in current_state["meshes"]:
-                if other_mesh["id"] == mesh["id"]:
+            for previous_state in current_state["meshes"]:
+                if previous_state["id"] == mesh["id"]:
                     found_mesh = True
-                    self.check_loading_changes(mesh, other_mesh)
+                    self.load_transformations_for_mesh(mesh, previous_state)
                     break
 
             if not found_mesh:
@@ -625,44 +568,41 @@ class Window(QMainWindow):
                                         "scale": mesh["scale"]
                                       }), True)
 
+        self.load_selection(next_state)
+
+        self.load_floor_and_walls(next_state)
+
+    def load_selection(self, next_state):
         if next_state["selection"] is not "None":
             self.select_mesh(next_state["selection"])
         else:
             self.de_select_meshes()
 
-        if "walls" in next_state:
-            self.request_change_texture(next_state["walls"]["fileName"],
-                                        next_state["walls"]["textureName"],
-                                        next_state["walls"]["type"], False)
-        else:
-            js.SetupScene.remove_texture("walls")
+    def load_floor_and_walls(self, next_state):
+        for texture_type in ("walls", "floor"):
+            if texture_type in next_state:
+                self.request_change_texture(next_state[texture_type]["fileName"],
+                                            next_state[texture_type]["textureName"],
+                                            next_state[texture_type]["type"], False)
+            else:
+                if texture_type == "floor":
+                    js.SetupScene.remove_texture("carpet")
+                else:
+                    js.SetupScene.remove_texture(texture_type)
 
-        if "floor" in next_state:
-            self.request_change_texture(next_state["floor"]["fileName"],
-                                        next_state["floor"]["textureName"],
-                                        next_state["floor"]["type"], False)
-        else:
-            js.SetupScene.remove_texture("carpet")
+    def load_transformations_for_mesh(self, mesh, previous_state):
+        pos_data_new = mesh["pos"]
+        pos_data_old = previous_state["pos"]
+        js.SetupScene.translate_mesh_by_id(
+            mesh["id"], pos_data_new[0] - pos_data_old[0],
+            pos_data_new[1] - pos_data_old[1], pos_data_new[2] - pos_data_old[2])
 
-    def check_loading_changes(self, mesh, other_mesh):
-        for what in ("pos", "rot", "scale"):
-            newData = mesh[what]
-            oldData = other_mesh[what]
-            if what == "pos":
-                js.SetupScene.translate_mesh_by_id(mesh["id"],
-                                                   newData[0] - oldData[0],
-                                                   newData[1] - oldData[1],
-                                                   newData[2] - oldData[2])
-            elif what == "rot":
-                js.SetupScene.rotate_mesh_by_id(mesh["id"],
-                                                newData[0],
-                                                newData[1],
-                                                newData[2])
-            elif what == "scale":
-                js.SetupScene.scale_mesh_by_id(mesh["id"],
-                                               newData[0],
-                                               newData[1],
-                                               newData[2], False)
+        rot_data = mesh["rot"]
+        js.SetupScene.rotate_mesh_by_id(mesh["id"], rot_data[0], rot_data[1], rot_data[2])
+
+        scale_data = mesh["scale"]
+        js.SetupScene.scale_mesh_by_id(
+            mesh["id"], scale_data[0], scale_data[1], scale_data[2], False)
 
     def clear_all(self):
         while self.list_widget.count() > 0:
@@ -693,20 +633,22 @@ class Window(QMainWindow):
         current_state = self.undo_utility.current_state(True)
         if undone_state is not None:
             # self.load_state(undone_state["state"])
-            self.load_changed_state(json.loads(current_state["state"]), json.loads(undone_state["state"]))
+            self.load_changed_state(json.loads(current_state["state"]),
+                                    json.loads(undone_state["state"]))
 
     def redo(self):
         redone_state = self.undo_utility.redo()
         current_state = self.undo_utility.current_state(False)
         if redone_state is not None:
             # self.load_state(redone_state["state"])
-            self.load_changed_state(json.loads(current_state["state"]), json.loads(redone_state["state"]))
+            self.load_changed_state(json.loads(current_state["state"]),
+                                    json.loads(redone_state["state"]))
 
     def explain_controls(self):
         msg_box = QtWidgets.QMessageBox()
         pixmap = QtGui.QPixmap()
         pixmap.load("assets/img/wiimote_explain.png")
-        pixmap = pixmap.scaled(600, 800)
+        pixmap = pixmap.scaled(534, 801)  # some 2:3 ratio that fits on most screens...
         msg_box.setWindowTitle("WiiMote Controls - Info")
         msg_box.setIconPixmap(pixmap)
         msg_box.setDefaultButton(QtWidgets.QMessageBox.Ok)

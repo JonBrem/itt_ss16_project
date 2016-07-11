@@ -2,7 +2,11 @@
 
 from PyQt5 import QtCore, QtGui, Qt, QtWidgets
 from collections import deque
+
 import pylab as pl
+import json
+import os
+import base64
 
 
 class RingArray(deque):
@@ -256,3 +260,70 @@ def get_projection_transformed_point(src_x_values, src_y_values, dest_width,
     y = target_point_y * 2 - y
 
     return x, y
+
+
+def get_name_for_new_mesh(name, type_, used_names):
+    if name is None:
+        name = type_
+    # "original" = unadulterated name
+    original_name = name
+    index = 1
+    while name in used_names:
+        name = original_name + str(index)
+        index += 1
+    return name
+
+
+def get_name_for_copy(orig_mesh_id, used_names):
+    name = original_name = orig_mesh_id + "_copy"
+    index = 1
+    while name in self.meshes:
+        name = original_name + str(index)
+        index += 1
+    return name
+
+
+def read_file_as_js_string(file, regular_contents_as_well=False):
+    for_js = '('
+    regular_contents = ''
+    for line in file:
+        for_js += "'" + line[:-1] + "' + \n"
+        if regular_contents_as_well:
+            regular_contents += line
+    for_js += "'')"
+
+    if regular_contents_as_well:
+        return for_js, regular_contents
+    else:
+        return for_js
+
+
+def load_images_as_base64(mesh_json):
+    """ Loads images (only for material diffuse textures) from jpeg
+        files as base 64 strings.
+        Returns a dict where the original file name (the one in the JSON)
+        is the key and the base64 data is the value. Thus, the corresponding
+        mesh data can easily be found in JS.
+
+        Will just do nothing if there is an error. The Param is a JSON string,
+        no JSON object.
+    """
+    images = {}
+    mesh_json = json.loads(mesh_json)
+    if "materials" in mesh_json:
+        for material in mesh_json["materials"]:
+            if "diffuseTexture" in material:
+                if "name" in material["diffuseTexture"]:
+                    file_name = "assets/models/" + \
+                                material["diffuseTexture"]["name"]
+                    if os.path.isfile(file_name):
+                        jpeg_file = load_single_img_as_base64(file_name)
+                        images[material["diffuseTexture"]["name"]] = \
+                            jpeg_file
+    return images
+
+
+def load_single_img_as_base64(file_name):
+    base64data = "data:image/jpg;base64," + \
+        str(base64.b64encode(open(file_name, "rb").read()))[2:]
+    return base64data
