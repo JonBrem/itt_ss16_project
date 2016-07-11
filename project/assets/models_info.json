@@ -244,7 +244,13 @@
                     "name": "Open Door",
                     "preview": "assets/img/flipchart.jpg",
                     "file": "assets/models/door_01_open.babylon"
+                },
+                {
+                    "name": "Window",
+                    "preview": "assets/img/flipchart.jpg",
+                    "file": "assets/models/window.babylon"
                 }
+
 
             ]
         }
