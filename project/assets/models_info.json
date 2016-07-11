@@ -234,6 +234,16 @@
                     "name": "Flip Chart",
                     "preview": "assets/img/flipchart.jpg",
                     "file": "assets/models/flipchart.babylon"
+                },
+                {
+                    "name": "Door",
+                    "preview": "assets/img/flipchart.jpg",
+                    "file": "assets/models/door_01.babylon"
+                },
+                {
+                    "name": "Open Door",
+                    "preview": "assets/img/flipchart.jpg",
+                    "file": "assets/models/door_01_open.babylon"
                 }
 
             ]
