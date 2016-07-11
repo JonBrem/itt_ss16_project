@@ -277,7 +277,7 @@ def get_name_for_new_mesh(name, type_, used_names):
 def get_name_for_copy(orig_mesh_id, used_names):
     name = original_name = orig_mesh_id + "_copy"
     index = 1
-    while name in self.meshes:
+    while name in used_names:
         name = original_name + str(index)
         index += 1
     return name
