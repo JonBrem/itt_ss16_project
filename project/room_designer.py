@@ -3,7 +3,7 @@
 import os
 
 from PyQt5 import uic, QtGui, QtCore, Qt, QtWidgets
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtWidgets import (QApplication, QMainWindow)
 from PyQt5.QtNetwork import QNetworkProxyFactory
 from PyQt5.QtWebKitWidgets import QWebView
