@@ -24,9 +24,11 @@ class Window(QMainWindow):
         self.progress = 0
         self.app = app
 
+        screenDimens = self.app.desktop().screenGeometry()
+        print("Detected screen resolution: ", screenDimens.width(), screenDimens.height())
         self.url = url
-        self.monitor_width = 1920
-        self.monitor_height = 1080
+        self.monitor_width = screenDimens.width()
+        self.monitor_height = screenDimens.height()
 
         QNetworkProxyFactory.setUseSystemConfiguration(True)
 
