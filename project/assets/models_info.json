@@ -237,17 +237,17 @@
                 },
                 {
                     "name": "Door",
-                    "preview": "assets/img/flipchart.jpg",
+                    "preview": "assets/img/door.jpg",
                     "file": "assets/models/door_01.babylon"
                 },
                 {
                     "name": "Open Door",
-                    "preview": "assets/img/flipchart.jpg",
+                    "preview": "assets/img/open_door.jpg",
                     "file": "assets/models/door_01_open.babylon"
                 },
                 {
                     "name": "Window",
-                    "preview": "assets/img/flipchart.jpg",
+                    "preview": "assets/img/window.png",
                     "file": "assets/models/window.babylon"
                 }
 
