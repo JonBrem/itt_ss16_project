@@ -35,13 +35,9 @@ class Window(QMainWindow):
         self.win = uic.loadUi('ui/room_design.ui')
         self.wv = QWebView(self.win)
 
-        self.menu_new = self.win.actionNew
-        self.menu_save = self.win.actionSave
-        self.menu_load = self.win.actionLoad
-
-        self.menu_new.triggered.connect(self.on_new_action)
-        self.menu_save.triggered.connect(self.on_save_action)
-        self.menu_load.triggered.connect(self.on_load_action)
+        self.win.menuNew.aboutToShow.connect(self.on_new_action)
+        self.win.menuSave.aboutToShow.connect(self.on_save_action)
+        self.win.menuLoad.aboutToShow.connect(self.on_load_action)
 
         js.SetupScene.init(self.wv)
 
@@ -93,15 +89,33 @@ class Window(QMainWindow):
         if ok:
             self.clear_all()
             js.SetupScene.create_new_scene(x, y)
+        self.clear_menu_selection()  # bugfix for the way we use menus (without actions)
 
     def on_save_action(self):
         js.SetupScene.save_state("save")
+        self.clear_menu_selection()  # bugfix for the way we use menus (without actions)
 
     def on_load_action(self):
         scene_json = um.FileDialog.load_json_from_file()
 
         if scene_json != '':
             self.load_state(scene_json)
+        self.clear_menu_selection()  # bugfix for the way we use menus (without actions)
+
+    def clear_menu_selection(self):
+        active_action = self.win.menuBar.activeAction()
+        if active_action is not None:
+            active_action.setEnabled(False)
+            active_action.setEnabled(True)
+
+        event = QtGui.QMouseEvent(QtGui.QMouseEvent.MouseButtonRelease,
+                                  QtCore.QPoint(0, 0),
+                                  QtCore.QPoint(0, 0),
+                                  QtCore.Qt.LeftButton,
+                                  QtCore.Qt.LeftButton,
+                                  QtCore.Qt.NoModifier)
+        self.app.postEvent(self.win.menuBar, event)
+        self.win.menuBar.clearFocus()
 
     def setup_wiimote(self):
         self.wiimote.a_button_clicked.connect(

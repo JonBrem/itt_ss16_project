@@ -296,22 +296,19 @@
     <property name="title">
      <string>New</string>
     </property>
-    <addaction name="actionNew"/>
    </widget>
-   <widget class="QMenu" name="menuSace">
+   <widget class="QMenu" name="menuSave">
     <property name="title">
      <string>Save</string>
     </property>
-    <addaction name="actionSave"/>
    </widget>
    <widget class="QMenu" name="menuLoad">
     <property name="title">
      <string>Load</string>
     </property>
-    <addaction name="actionLoad"/>
    </widget>
    <addaction name="menuNew"/>
-   <addaction name="menuSace"/>
+   <addaction name="menuSave"/>
    <addaction name="menuLoad"/>
   </widget>
   <action name="actionNew">
