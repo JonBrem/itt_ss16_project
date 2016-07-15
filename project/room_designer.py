@@ -34,13 +34,9 @@ class Window(QMainWindow):
         self.win = uic.loadUi('ui/room_design.ui')
         self.wv = QWebView(self.win)
 
-        self.win.menuNew.aboutToShow.connect(self.on_new_action)
-        self.win.menuSave.aboutToShow.connect(self.on_save_action)
-        self.win.menuLoad.aboutToShow.connect(self.on_load_action)
-
         js.SetupScene.init(self.wv)
 
-        self.wv.setGeometry(30, 30, 1000, 650)
+        self.wv.setGeometry(30, 60, 1000, 650)
         js.SetupScene.apply_callback('python_callback', self)
 
         self.wv.load(self.url)
@@ -222,6 +218,10 @@ class Window(QMainWindow):
         self.win.x_z_plane_cam_btn.clicked.connect(lambda: self.target_cam_to_plane('xz'))
         self.win.y_z_plane_cam_btn.clicked.connect(lambda: self.target_cam_to_plane('yz'))
 
+        self.win.btn_new.clicked.connect(self.on_new_action)
+        self.win.btn_save.clicked.connect(self.on_save_action)
+        self.win.btn_load.clicked.connect(self.on_load_action)
+
     # SELECTION TABLES
 
     def setup_selection_tables(self):
@@ -234,7 +234,7 @@ class Window(QMainWindow):
             self, "Mesh", self.win)
         self.mesh_select_table.set_create_from_center(False)
         self.mesh_select_table.move(
-            250, 635 + model_table.TABLE_ITEM_SIZE)
+            250, 665 + model_table.TABLE_ITEM_SIZE)
         self.mesh_select_table.itemSelectionChanged.connect(
             lambda: self.table_selection_changed(self.mesh_select_table))
         self.read_selection_table_data("assets/models_info.json", self.mesh_select_table)
@@ -244,7 +244,7 @@ class Window(QMainWindow):
             self, "Texture", self.win)
         self.texture_select_table.set_create_from_center(False)
         self.texture_select_table.move(
-            50, 635 + model_table.TABLE_ITEM_SIZE)
+            50, 665 + model_table.TABLE_ITEM_SIZE)
         self.texture_select_table.itemSelectionChanged.connect(
             lambda: self.table_selection_changed(self.texture_select_table))
         self.read_selection_table_data("assets/textures_info.json",
@@ -521,33 +521,15 @@ class Window(QMainWindow):
         if ok:
             self.clear_all()
             js.SetupScene.create_new_scene(x, y)
-        self.clear_menu_selection()  # bugfix for the way we use menus (without actions)
 
     def on_save_action(self):
         js.SetupScene.save_state("save")
-        self.clear_menu_selection()  # bugfix for the way we use menus (without actions)
 
     def on_load_action(self):
         scene_json = um.FileDialog.load_json_from_file()
 
         if scene_json != '':
             self.load_state(scene_json)
-        self.clear_menu_selection()  # bugfix for the way we use menus (without actions)
-
-    def clear_menu_selection(self):
-        active_action = self.win.menuBar.activeAction()
-        if active_action is not None:
-            active_action.setEnabled(False)
-            active_action.setEnabled(True)
-
-        event = QtGui.QMouseEvent(QtGui.QMouseEvent.MouseButtonRelease,
-                                  QtCore.QPoint(0, 0),
-                                  QtCore.QPoint(0, 0),
-                                  QtCore.Qt.LeftButton,
-                                  QtCore.Qt.LeftButton,
-                                  QtCore.Qt.NoModifier)
-        self.app.postEvent(self.win.menuBar, event)
-        self.win.menuBar.clearFocus()
 
     @QtCore.pyqtSlot(str, str)
     def save_state_result(self, scene_json, identifier):
