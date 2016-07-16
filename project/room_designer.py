@@ -25,7 +25,6 @@ class Window(QMainWindow):
         self.app = app
 
         screenDimens = self.app.desktop().screenGeometry()
-        print("Detected screen resolution: ", screenDimens.width(), screenDimens.height())
         self.url = url
         self.monitor_width = screenDimens.width()
         self.monitor_height = screenDimens.height()
@@ -35,13 +34,7 @@ class Window(QMainWindow):
         self.win = uic.loadUi('ui/room_design.ui')
         self.wv = QWebView(self.win)
 
-        self.win.menuNew.aboutToShow.connect(self.on_new_action)
-        self.win.menuSave.aboutToShow.connect(self.on_save_action)
-        self.win.menuLoad.aboutToShow.connect(self.on_load_action)
-
         js.SetupScene.init(self.wv)
-
-        self.wv.setGeometry(30, 30, 1000, 650)
         js.SetupScene.apply_callback('python_callback', self)
 
         self.wv.load(self.url)
@@ -49,7 +42,7 @@ class Window(QMainWindow):
         self.list_widget = self.win.list_widget
         self.mesh_select_table = None
         self.model_table = None
-        self.ground_texture_select_table = None
+        self.texture_select_table = None
 
         self.setup_ui()
 
@@ -83,39 +76,7 @@ class Window(QMainWindow):
         self.selected_plane = "xz"
         self.select_plane(self.selected_plane)
 
-    def on_new_action(self):
-        x, y, ok = um.InputDialog.get_new_room_xz_dimensions()
-
-        if ok:
-            self.clear_all()
-            js.SetupScene.create_new_scene(x, y)
-        self.clear_menu_selection()  # bugfix for the way we use menus (without actions)
-
-    def on_save_action(self):
-        js.SetupScene.save_state("save")
-        self.clear_menu_selection()  # bugfix for the way we use menus (without actions)
-
-    def on_load_action(self):
-        scene_json = um.FileDialog.load_json_from_file()
-
-        if scene_json != '':
-            self.load_state(scene_json)
-        self.clear_menu_selection()  # bugfix for the way we use menus (without actions)
-
-    def clear_menu_selection(self):
-        active_action = self.win.menuBar.activeAction()
-        if active_action is not None:
-            active_action.setEnabled(False)
-            active_action.setEnabled(True)
-
-        event = QtGui.QMouseEvent(QtGui.QMouseEvent.MouseButtonRelease,
-                                  QtCore.QPoint(0, 0),
-                                  QtCore.QPoint(0, 0),
-                                  QtCore.Qt.LeftButton,
-                                  QtCore.Qt.LeftButton,
-                                  QtCore.Qt.NoModifier)
-        self.app.postEvent(self.win.menuBar, event)
-        self.win.menuBar.clearFocus()
+    # WIIMOTE BINDINGS & METHODS
 
     def setup_wiimote(self):
         self.wiimote.a_button_clicked.connect(
@@ -201,7 +162,8 @@ class Window(QMainWindow):
     def on_wm_plus_button_press(self):
         if self.selected_mesh is not None:
             js.SetupScene.save_state("duplicate_mesh")
-            self.duplicate()
+            if self.selected_mesh is not None:
+                self.request_duplicate_mesh(self.selected_mesh)
 
     def on_wm_minus_button_press(self):
         if self.selected_mesh is not None:
@@ -210,31 +172,6 @@ class Window(QMainWindow):
 
     def on_wm_home_button_clicked(self):
         js.SetupScene.set_camera_to_default()
-
-    def handle_mesh_scaling_fine(self, data):
-        scale_step = (512 - 407) / 10000
-
-        scale = ((self.initial_accelerometer_data[1]-data[1]) * scale_step)
-
-        if data[2] > 511:
-            js.SetupScene.scale_mesh_by_id(self.selected_mesh,
-                                           scale + self.last_scale_factor,
-                                           scale + self.last_scale_factor,
-                                           scale + self.last_scale_factor)
-
-    def handle_mesh_rotation_y(self, data):
-        angle_step = (512 - 407) / 90 * np.pi / 180
-
-        angle = (self.initial_accelerometer_data[0]-data[0]) * angle_step/1.3
-
-        if data[2] > 506:
-            js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, angle +
-                                            self.last_angle_y_rotation, 0)
-        '''
-        elif data[2] < 507:
-            js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, (angle +
-                                            self.last_angle_y_rotation) * -1, 0)
-        '''
 
     def on_wm_b_button_release(self):
         if len(self.mesh_rotation) != 0:
@@ -258,33 +195,18 @@ class Window(QMainWindow):
         address = self.address_line_edit.text()
         self.wiimote.connect(address)
 
+    # UI SETUP
+
     def setup_ui(self):
+        # magic numbers = coordinates (the app is not responsive anyway)
+        self.wv.setGeometry(30, 60, 1000, 650)
+        self.wv.installEventFilter(self)
+        self.win.installEventFilter(self)
+
         self.list_widget.selectionModel().selectionChanged.connect(
             self.mesh_selection_changed)
 
-        self.mesh_select_table = model_table.ExpandableSelectionTable(self,
-                                                                      "Mesh",
-                                                                      self.win)
-        self.mesh_select_table.setGeometry(10 + 500,
-                                           635 + model_table.TABLE_ITEM_SIZE,
-                                           0, model_table.TABLE_ITEM_SIZE)
-        self.mesh_select_table.itemSelectionChanged.connect(
-            lambda: self.table_selection_changed(self.mesh_select_table))
-        self.read_mesh_data("assets/models_info.json")
-
-        self.ground_texture_select_table = model_table.ExpandableSelectionTable(self,
-                                                                                "Texture",
-                                                                                self.win)
-        self.ground_texture_select_table.setGeometry(10 + 1.5 * model_table.TABLE_ITEM_SIZE,
-                                                     635 + model_table.TABLE_ITEM_SIZE,
-                                                     0, model_table.TABLE_ITEM_SIZE)
-        self.ground_texture_select_table.itemSelectionChanged.connect(
-            lambda: self.table_selection_changed(self.ground_texture_select_table))
-        self.read_texture_data("assets/textures_info.json")
-
-        # should do this for all buttons etc. except the mesh table
-        self.wv.installEventFilter(self)
-        self.win.installEventFilter(self)
+        self.setup_selection_tables()
 
         self.win.explain_controls_btn.clicked.connect(self.explain_controls)
 
@@ -292,39 +214,63 @@ class Window(QMainWindow):
         self.win.x_z_plane_btn.clicked.connect(lambda: self.select_plane("xz"))
         self.win.y_z_plane_btn.clicked.connect(lambda: self.select_plane("yz"))
 
-        self.win.x_y_plane_cam_btn.clicked.connect(
-            lambda: self.target_cam_to_plane('xy'))
+        self.win.x_y_plane_cam_btn.clicked.connect(lambda: self.target_cam_to_plane('xy'))
+        self.win.x_z_plane_cam_btn.clicked.connect(lambda: self.target_cam_to_plane('xz'))
+        self.win.y_z_plane_cam_btn.clicked.connect(lambda: self.target_cam_to_plane('yz'))
 
-        self.win.x_z_plane_cam_btn.clicked.connect(
-            lambda: self.target_cam_to_plane('xz'))
+        self.win.btn_new.clicked.connect(self.on_new_action)
+        self.win.btn_save.clicked.connect(self.on_save_action)
+        self.win.btn_load.clicked.connect(self.on_load_action)
 
-        self.win.y_z_plane_cam_btn.clicked.connect(
-            lambda: self.target_cam_to_plane('yz'))
+    # SELECTION TABLES
+
+    def setup_selection_tables(self):
+        """ Sets up the mesh_select_table and texture_select_table
+        """
+        # magic numbers = coordinates (the app is not responsive anyway)
+
+        # mesh_select_table (for the models)
+        self.mesh_select_table = model_table.ExpandableSelectionTable(
+            self, "Mesh", self.win)
+        self.mesh_select_table.set_create_from_center(False)
+        self.mesh_select_table.move(
+            250, 665 + model_table.TABLE_ITEM_SIZE)
+        self.mesh_select_table.itemSelectionChanged.connect(
+            lambda: self.table_selection_changed(self.mesh_select_table))
+        self.read_selection_table_data("assets/models_info.json", self.mesh_select_table)
+
+        # texture_select_table (ground, wall textures)
+        self.texture_select_table = model_table.ExpandableSelectionTable(
+            self, "Texture", self.win)
+        self.texture_select_table.set_create_from_center(False)
+        self.texture_select_table.move(
+            50, 665 + model_table.TABLE_ITEM_SIZE)
+        self.texture_select_table.itemSelectionChanged.connect(
+            lambda: self.table_selection_changed(self.texture_select_table))
+        self.read_selection_table_data("assets/textures_info.json",
+                                       self.texture_select_table)
 
     def table_selection_changed(self, table):
+        """ Callback method; simply de-selects the other table.
+            "Table" refers to the mesh selection bar or the
+            texture selection bar (which are, technically, tables).
+        """
         other_table = None
         if table == self.mesh_select_table:
-            other_table = self.ground_texture_select_table
+            other_table = self.texture_select_table
         else:
             other_table = self.mesh_select_table
 
         if len(table.selectedIndexes()) > 0:
             other_table.lose_focus()
 
-    def target_cam_to_plane(self, plane):
-            js.SetupScene.target_camera_to_plane(plane)
+    def read_selection_table_data(self, file_path, selection_table):
+        with open(file_path, 'r') as data_file:
+            data = json.loads(data_file.read())
+            for category in data['categories']:
+                selection_table.add_item(category)
 
-    def read_mesh_data(self, file_path):
-        with open(file_path, 'r') as mesh_data_file:
-            mesh_data = json.loads(mesh_data_file.read())
-            for category in mesh_data['categories']:
-                self.mesh_select_table.add_item(category)
-
-    def read_texture_data(self, file_path):
-        with open(file_path, 'r') as texture_data_file:
-            texture_data = json.loads(texture_data_file.read())
-            for category in texture_data['categories']:
-                self.ground_texture_select_table.add_item(category)
+    # ADDING MESHES / SELECTING TEXTURES
 
     def request_add_mesh(self, mesh_file_name, type_, name=None,
                          transform="null", from_load=False):
@@ -342,14 +288,15 @@ class Window(QMainWindow):
         js.SetupScene.add_mesh(data, name, texture_images, type_, transform,
                                mesh_file_name)
 
-    def duplicate(self, b=None):
-        if self.selected_mesh is not None:
-            self.request_duplicate_mesh(self.selected_mesh)
+    @QtCore.pyqtSlot(str)
+    def js_mesh_loaded(self, mesh_name):
+        self.list_widget.addItem(mesh_name)
+        self.meshes.append(mesh_name)
+        self.select_mesh(mesh_name)
 
-    def request_duplicate_mesh(self, mesh_id):
-        js.SetupScene.save_state("duplicate_mesh")
-        name = um.get_name_for_copy(mesh_id, self.meshes)
-        js.SetupScene.duplicate_mesh(mesh_id, name)
+    @QtCore.pyqtSlot(str, str)
+    def js_mesh_load_error(self, mesh_name, error):
+        print(mesh_name, error)
 
     def request_change_texture(self, file_name, name, type_, create_undo_point=True):
         if create_undo_point:
@@ -357,6 +304,11 @@ class Window(QMainWindow):
 
         base64data = um.load_single_img_as_base64(file_name)
         js.SetupScene.set_texture(type_, name, base64data, file_name)
+
+    # PLANE / CAMERA BUTTONS ON THE SIDE
+
+    def target_cam_to_plane(self, plane):
+            js.SetupScene.target_camera_to_plane(plane)
 
     def select_plane(self, which):
         self.selected_plane = which
@@ -371,6 +323,89 @@ class Window(QMainWindow):
 
         js.SetupScene.set_selected_plane(which)
 
+    # OBJECT MANIPULATIONS
+
+    def request_duplicate_mesh(self, mesh_id):
+        js.SetupScene.save_state("duplicate_mesh")
+        name = um.get_name_for_copy(mesh_id, self.meshes)
+        js.SetupScene.duplicate_mesh(mesh_id, name)
+
+    def handle_mesh_scaling_fine(self, data):
+        # Magic Numbers: WiiMote Sensor Values
+        # 10000 = "sensitivity" (smaller = bigger changes)
+        scale_step = (512 - 407) / 10000
+
+        scale = ((self.initial_accelerometer_data[1]-data[1]) * scale_step)
+
+        if data[2] > 511:
+            js.SetupScene.scale_mesh_by_id(self.selected_mesh,
+                                           scale + self.last_scale_factor,
+                                           scale + self.last_scale_factor,
+                                           scale + self.last_scale_factor)
+
+    def handle_mesh_rotation_y(self, data):
+        # Magic Numbers: WiiMote Sensor Values / Angles
+        angle_step = (512 - 407) / 90 * np.pi / 180
+
+        angle = (self.initial_accelerometer_data[0]-data[0]) * angle_step/1.3
+
+        if data[2] > 506:
+            js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, angle +
+                                            self.last_angle_y_rotation, 0)
+        '''
+        elif data[2] < 507:
+            js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, (angle +
+                                            self.last_angle_y_rotation) * -1, 0)
+        '''
+
+    @QtCore.pyqtSlot(str, str, str)
+    def on_translation_rotation_scale_request(self, trans, rot, scale):
+        self.get_mesh_properties(trans, 'trans')
+        self.get_mesh_properties(rot, 'rot')
+        self.get_mesh_properties(scale, 'scale')
+
+    def get_mesh_properties(self, data, mode):
+
+        if mode == 'trans':
+            self.mesh_translation = js.deserialize_list(data)
+
+        if mode == 'rot':
+            self.mesh_rotation = js.deserialize_list(data)
+
+        if mode == 'scale':
+            self.mesh_scale = js.deserialize_list(data)
+
+    # dragging happens in JS, Python is notified when it starts to enable Undo:
+
+    @QtCore.pyqtSlot(str)
+    def on_js_obj_drag_start(self, mesh_id):
+        js.SetupScene.save_state("js_drag_translate")
+
+    # DELETING / RESETTING
+
+    def clear_all(self):
+        while self.list_widget.count() > 0:
+            self.list_widget.takeItem(0)
+
+        for mesh in self.meshes:
+            js.SetupScene.remove_mesh(mesh)
+
+        js.SetupScene.remove_texture("walls")
+        js.SetupScene.remove_texture("carpet")
+        self.meshes = []
+        self.selected_mesh = None
+        self.undo_utility.reset()
+
+    def delete_mesh(self, mesh_id):
+        self.selected_mesh = None
+        if mesh_id in self.meshes:
+            index = self.meshes.index(mesh_id)
+            del self.meshes[index]
+            self.list_widget.takeItem(index)
+        js.SetupScene.remove_mesh(mesh_id)
+
+    # MESH SELECTION
+
     def mesh_selection_changed(self, b=0):
         selected = self.list_widget.selectedIndexes()
         if len(selected) > 0:
@@ -380,6 +415,7 @@ class Window(QMainWindow):
 
     def select_mesh(self, obj_id, update_list=True, from_click=False):
         was_selected = self.selected_mesh == obj_id
+        # = short for "the item that was selected was the item that was already selected"
 
         self.selected_mesh = obj_id
         for mesh in self.meshes:
@@ -411,6 +447,15 @@ class Window(QMainWindow):
 
         for mesh in self.meshes:
             js.SetupScene.remove_highlight_from_mesh(mesh)
+
+    @QtCore.pyqtSlot(str)
+    def on_object_clicked(self, obj_id):
+        if obj_id in self.meshes:
+            self.select_mesh(obj_id, True, True)
+        else:  # == None; None does not work from JS
+            self.de_select_meshes()
+
+    # CURSOR AND CLICKS
 
     def set_cursor_position(self, x, y, absolute=True):
         if absolute:
@@ -472,53 +517,23 @@ class Window(QMainWindow):
 
         self.app.postEvent(self.wv, event)
 
-    @QtCore.pyqtSlot(str)
-    def js_mesh_loaded(self, mesh_name):
-        self.list_widget.addItem(mesh_name)  # maybe map binding to object ?
-        self.meshes.append(mesh_name)
-        self.select_mesh(mesh_name)
+    # NEW, SAVE, LOAD, UNDO, REDO
 
-    @QtCore.pyqtSlot(str, str)
-    def js_mesh_load_error(self, mesh_name, error):
-        print(mesh_name, error)
+    def on_new_action(self):
+        x, y, ok = um.InputDialog.get_new_room_xz_dimensions()
 
-    @QtCore.pyqtSlot(str)
-    def on_js_obj_drag_start(self, mesh_id):
-        js.SetupScene.save_state("js_drag_translate")
+        if ok:
+            self.clear_all()
+            js.SetupScene.create_new_scene(x, y)
 
-    @QtCore.pyqtSlot(str)
-    def on_object_clicked(self, obj_id):
-        if obj_id in self.meshes:
-            self.select_mesh(obj_id, True, True)
-        else:  # == None; None does not work from JS
-            self.de_select_meshes()
+    def on_save_action(self):
+        js.SetupScene.save_state("save")
 
-    @QtCore.pyqtSlot(str)
-    def on_js_console_log(self, log):
-        """
-        function for debugging purposes
+    def on_load_action(self):
+        scene_json = um.FileDialog.load_json_from_file()
 
-        :param log:
-        :return:
-        """
-        print(log)
-
-    @QtCore.pyqtSlot(str, str, str)
-    def on_translation_rotation_scale_request(self, trans, rot, scale):
-        self.get_mesh_properties(trans, 'trans')
-        self.get_mesh_properties(rot, 'rot')
-        self.get_mesh_properties(scale, 'scale')
-
-    def get_mesh_properties(self, data, mode):
-
-        if mode == 'trans':
-            self.mesh_translation = js.deserialize_list(data)
-
-        if mode == 'rot':
-            self.mesh_rotation = js.deserialize_list(data)
-
-        if mode == 'scale':
-            self.mesh_scale = js.deserialize_list(data)
+        if scene_json != '':
+            self.load_state(scene_json)
 
     @QtCore.pyqtSlot(str, str)
     def save_state_result(self, scene_json, identifier):
@@ -627,27 +642,6 @@ class Window(QMainWindow):
         js.SetupScene.scale_mesh_by_id(
             mesh["id"], scale_data[0], scale_data[1], scale_data[2], False)
 
-    def clear_all(self):
-        while self.list_widget.count() > 0:
-            self.list_widget.takeItem(0)
-
-        for mesh in self.meshes:
-            js.SetupScene.remove_mesh(mesh)
-
-        js.SetupScene.remove_texture("walls")
-        js.SetupScene.remove_texture("carpet")
-        self.meshes = []
-        self.selected_mesh = None
-        self.undo_utility.reset()
-
-    def delete_mesh(self, mesh_id):
-        self.selected_mesh = None
-        if mesh_id in self.meshes:
-            index = self.meshes.index(mesh_id)
-            del self.meshes[index]
-            self.list_widget.takeItem(index)
-        js.SetupScene.remove_mesh(mesh_id)
-
     def request_undo(self):
         js.SetupScene.save_state("undo")
 
@@ -667,6 +661,18 @@ class Window(QMainWindow):
             self.load_changed_state(json.loads(current_state["state"]),
                                     json.loads(redone_state["state"]))
 
+    # MISCELLANY
+
+    @QtCore.pyqtSlot(str)
+    def on_js_console_log(self, log):
+        """
+        function for debugging purposes
+
+        :param log:
+        :return:
+        """
+        print(log)
+
     def explain_controls(self):
         msg_box = QtWidgets.QMessageBox()
         pixmap = QtGui.QPixmap()
@@ -678,14 +684,15 @@ class Window(QMainWindow):
         msg_box.show()
         msg_box.exec_()
 
-    # event filter that causes mesh selection table to lose focus
-    # (if it has focus)
     def eventFilter(self, source, event):
+        """ Causes selection tables to lose focus (if they have the focus)
+            and handles ctrl+z & ctrl+y
+        """
         if event.type() == QtGui.QMouseEvent.MouseButtonPress:
             self.mesh_select_table.lose_focus()
-            self.ground_texture_select_table.lose_focus()
+            self.texture_select_table.lose_focus()
         elif event.type() == QtGui.QKeyEvent.KeyRelease:
-            if event.key() == 75:  # [clic]k
+            if event.key() == 75:  # clic[k]; so it can be tested without the WiiMote
                 self.simulate_click()
             # z (undo if with ctrl)
             elif (source == self.win and event.key() == 90 and

@@ -10,6 +10,8 @@ class HorizontalSelectionTable(QtWidgets.QTableWidget):
         super(HorizontalSelectionTable, self).__init__(parent)
         self.setup_ui()
         self.insertRow(0)
+        self.setGeometry(0, 0, 0, TABLE_ITEM_SIZE)
+        self.create_from_center = True
 
     def setup_ui(self):
         self.verticalHeader().hide()
@@ -27,12 +29,19 @@ class HorizontalSelectionTable(QtWidgets.QTableWidget):
         self.setCellWidget(0, self.columnCount() - 1,
                            new_item)
         self.resize(self.width() + TABLE_ITEM_SIZE, self.height())
-        self.move(self.pos().x() - (TABLE_ITEM_SIZE / 2.0), self.pos().y())
+        if self.create_from_center:
+            self.move(self.pos().x() - (TABLE_ITEM_SIZE / 2.0), self.pos().y())
 
         while self.mapToGlobal(QtCore.QPoint(self.pos().x(), 0)).x() < TABLE_ITEM_SIZE:
             self.move(self.pos().x() + 10, self.pos().y())
 
         return new_item
+
+    def set_create_from_center(self, create_from_center):
+        """ If create_from_center is true, the addition of an item
+            will cause the table's x position to move to the left by half the item's width.
+        """
+        self.create_from_center = create_from_center
 
 
 class ExpandableSelectionTable(HorizontalSelectionTable):

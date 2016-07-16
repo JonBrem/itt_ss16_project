@@ -11,6 +11,11 @@ import json
 
 
 class SetupScene:
+    """ Contains calls to the JS component.
+
+        Our .js file is called "setup_scene.js", hence the name of this class.
+        This helps to keep all JS parts of the python system in one place.
+    """
     webview = None
 
     @staticmethod
