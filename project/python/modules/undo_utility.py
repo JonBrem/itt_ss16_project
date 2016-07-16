@@ -1,10 +1,13 @@
 from python.modules import utility_module as um
 
+UNDO_LENGTH = 15
+
 
 class UndoUtility():
 
-    def __init__(self):
-        self.action_history_ring = um.RingArray(12)
+    def __init__(self, max_steps=UNDO_LENGTH):
+        self.action_history_ring = um.RingArray(max_steps)
+        self.max_steps = max_steps
         self.current_index = 0
 
         self.first_state_at_undo = None
@@ -12,7 +15,7 @@ class UndoUtility():
         self.currently_redoing = False
 
     def reset(self):
-        self.action_history_ring = um.RingArray(12)
+        self.action_history_ring = um.RingArray(self.max_steps)
         self.current_index = 0
 
         self.first_state_at_undo = None
@@ -30,8 +33,10 @@ class UndoUtility():
 
         if self.current_index != len(self.action_history_ring) - 1 and\
            len(self.action_history_ring) != 0:
+            # was currently undoing & now appended another action -->
+            # the states that followed must be overwritten.
             old_action_ring = self.action_history_ring
-            self.action_history_ring = um.RingArray(12)
+            self.action_history_ring = um.RingArray(self.max_steps)
             for i in range(0, self.current_index):
                 self.action_history_ring.append(old_action_ring[i])
 
@@ -39,7 +44,8 @@ class UndoUtility():
         self.current_index = len(self.action_history_ring) - 1
 
     def undo(self):
-        if self.current_index < 0 or self.current_index not in range(0, len(self.action_history_ring)):
+        """ Returns the state before the last change, or None. """
+        if self.current_index not in range(0, len(self.action_history_ring)):
             return None
 
         self.currently_redoing = False
@@ -54,6 +60,7 @@ class UndoUtility():
             self.first_state_at_undo = state
 
     def redo(self):
+        """ Returns the state before the last "undo", or None. """
         if not self.currently_undoing:
             return None
 
@@ -68,6 +75,10 @@ class UndoUtility():
             return None
 
     def current_state(self, after_undo=True):
+        """ Returns the state before "undo" or "redo" is applied.
+            Must be called immediately _after_ one of these methods (undo / redo);
+            else it might return the wrong state.
+        """
         if len(self.action_history_ring) == 0:
             return None
         if after_undo:

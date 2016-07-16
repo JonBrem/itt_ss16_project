@@ -20,12 +20,12 @@
                     "file": "assets/models/dark_chair.babylon"
                 },
                 {
-                    "name": "Conference Chair",
+                    "name": "Conf. Chair",
                     "preview": "assets/img/krzeslo-konferecyjne-set-up-k3n.jpg",
                     "file": "assets/models/conference_chair.babylon"
                 },
                 {
-                    "name": "Comfy High Chair",
+                    "name": "High Chair",
                     "preview": "assets/img/stolek-barowy-bst-9608-model-3d-fameg.jpg",
                     "file": "assets/models/comfy_high_chair.babylon"
                 }
@@ -36,22 +36,22 @@
             "img": "assets/img/table-128.png",
             "models": [
                 {
-                    "name": "Curved Bright Table",
+                    "name": "Curved Table",
                     "preview": "assets/img/HEBE-biurko-z-kontenerem-BP33.jpg",
                     "file": "assets/models/white_green_round_table.babylon"
                 },
                 {
-                    "name": "Brown Round Table",
+                    "name": "Round Table",
                     "preview": "assets/img/stol-jadalniany-2.jpg",
                     "file": "assets/models/small_round_brown_table.babylon"
                 },
                 {
-                    "name": "Long Brown Table",
+                    "name": "Long Table",
                     "preview": "assets/img/stol-jadalniany-3.jpg",
                     "file": "assets/models/longer_brown_round_table.babylon"
                 },
                 {
-                    "name": "Modern Wooden Table",
+                    "name": "Modern Table",
                     "preview": "assets/img/TIRION-biurko-M112.jpg",
                     "file": "assets/models/modern_wooden_table.babylon"
                 },
@@ -67,27 +67,27 @@
             "img": "assets/img/wardrobe-128.png",
             "models": [
                 {
-                    "name": "Green-Door Container",
+                    "name": "Std. Cont.",
                     "preview": "assets/img/HEBE-kontenery-na-kolkach-BP90.jpg",
                     "file": "assets/models/cabinet_green_door.babylon"
                 },
                 {
-                    "name": "Bright Office Cabinet",
+                    "name": "Bright Cabinet",
                     "preview": "assets/img/hebe-szafka-bp110.jpg",
                     "file": "assets/models/bright_office_cabinet.babylon"
                 },
                 {
-                    "name": "Wooden Commode",
+                    "name": "Wood. Comm.",
                     "preview": "assets/img/komoda-1.jpg",
                     "file": "assets/models/wood_commode.babylon"
                 },
                 {
-                    "name": "Black-door Commode",
+                    "name": "Bright Comm.",
                     "preview": "assets/img/TIRION-komoda-M106.jpg",
                     "file": "assets/models/commode_black_door.babylon"
                 },
                 {
-                    "name": "Wooden Container",
+                    "name": "Wood. Cont.",
                     "preview": "assets/img/TIRION-szafa-M307.jpg",
                     "file": "assets/models/container_dark_door.babylon"
                 },
@@ -139,32 +139,32 @@
             "img": "assets/img/lamp-128.png",
             "models": [
                 {
-                    "name": "Wall Lights 1",
+                    "name": "Lights (01)",
                     "preview": "assets/img/kinkiet-model-3d-king-ii.jpg",
                     "file": "assets/models/light_wall_01.babylon"
                 },
                 {
-                    "name": "Wall Lights 2",
+                    "name": "Lights (02)",
                     "preview": "assets/img/kinkiet-model-3d-rider.jpg",
                     "file": "assets/models/light_wall_02.babylon"
                 },
                 {
-                    "name": "Standing Light 1",
+                    "name": "Light Stand (1)",
                     "preview": "assets/img/lampa-podlogowa-michigan.jpg",
                     "file": "assets/models/light_stand_01.babylon"
                 },
                 {
-                    "name": "Standing Light 2",
+                    "name": "Light Stand (2)",
                     "preview": "assets/img/lampa-podlogowa-model-3d-como.jpg",
                     "file": "assets/models/light_stand_02.babylon"
                 },
                 {
-                    "name": "Standing Light 3",
+                    "name": "Light Stand (3)",
                     "preview": "assets/img/lampa-podlogowa-model-3d-wiena.jpg",
                     "file": "assets/models/light_stand_03.babylon"
                 },
                 {
-                    "name": "Modern Table Light",
+                    "name": "Modern Lamp",
                     "preview": "assets/img/lampa-stolowa-model-3d-snake.jpg",
                     "file": "assets/models/light_modern_table.babylon"
                 }
@@ -211,12 +211,12 @@
                     "file": "assets/models/stove.babylon"
                 },
                 {
-                    "name": "Black radiator",
+                    "name": "Black rad.",
                     "preview": "assets/img/grzejnik-scienny-geo-60x100.jpg",
                     "file": "assets/models/radiator_black.babylon"
                 },
                 {
-                    "name": "White radiator",
+                    "name": "White rad.",
                     "preview": "assets/img/grzejnik-scienny-strada-15-50x50.jpg",
                     "file": "assets/models/radiator_white.babylon"
                 },

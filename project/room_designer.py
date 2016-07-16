@@ -35,8 +35,6 @@ class Window(QMainWindow):
         self.wv = QWebView(self.win)
 
         js.SetupScene.init(self.wv)
-
-        self.wv.setGeometry(30, 60, 1000, 650)
         js.SetupScene.apply_callback('python_callback', self)
 
         self.wv.load(self.url)
@@ -200,6 +198,8 @@ class Window(QMainWindow):
     # UI SETUP
 
     def setup_ui(self):
+        # magic numbers = coordinates (the app is not responsive anyway)
+        self.wv.setGeometry(30, 60, 1000, 650)
         self.wv.installEventFilter(self)
         self.win.installEventFilter(self)
 
@@ -331,6 +331,8 @@ class Window(QMainWindow):
         js.SetupScene.duplicate_mesh(mesh_id, name)
 
     def handle_mesh_scaling_fine(self, data):
+        # Magic Numbers: WiiMote Sensor Values
+        # 10000 = "sensitivity" (smaller = bigger changes)
         scale_step = (512 - 407) / 10000
 
         scale = ((self.initial_accelerometer_data[1]-data[1]) * scale_step)
@@ -342,6 +344,7 @@ class Window(QMainWindow):
                                            scale + self.last_scale_factor)
 
     def handle_mesh_rotation_y(self, data):
+        # Magic Numbers: WiiMote Sensor Values / Angles
         angle_step = (512 - 407) / 90 * np.pi / 180
 
         angle = (self.initial_accelerometer_data[0]-data[0]) * angle_step/1.3
@@ -412,6 +415,7 @@ class Window(QMainWindow):
 
     def select_mesh(self, obj_id, update_list=True, from_click=False):
         was_selected = self.selected_mesh == obj_id
+        # = short for "the item that was selected was the item that was already selected"
 
         self.selected_mesh = obj_id
         for mesh in self.meshes:
