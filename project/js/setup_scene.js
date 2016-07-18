@@ -295,6 +295,8 @@ function highlight(obj_id, fromClick) {
                 startingPoint = highlightedMesh.getBoundingInfo().boundingBox.center;
             }, 0);
         }
+
+        python_callback.on_mesh_highlighted(obj_id, meshes[obj_id].scaling.x, meshes[obj_id].rotation.y);
     }
 }
 

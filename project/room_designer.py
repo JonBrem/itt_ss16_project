@@ -121,7 +121,7 @@ class Window(QMainWindow):
     def on_wm_ir_data_update(self, data):
         x, y = data
 
-        print('ir lights found')
+        #  print('ir lights found')
 
         self.set_cursor_position(x, y, True)
 
@@ -454,6 +454,14 @@ class Window(QMainWindow):
             self.select_mesh(obj_id, True, True)
         else:  # == None; None does not work from JS
             self.de_select_meshes()
+
+    @QtCore.pyqtSlot(str, str, str)
+    def on_mesh_highlighted(self, obj_id, scale, y_rotation):
+        self.last_scale_factor = float(scale)
+        self.last_angle_y_rotation = float(y_rotation)
+
+        self.mesh_rotation = [0, float(y_rotation), 0]
+        self.mesh_scale = [float(scale), float(scale), float(scale)]
 
     # CURSOR AND CLICKS
 
