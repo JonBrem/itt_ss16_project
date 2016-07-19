@@ -55,6 +55,9 @@ class Wiimote(QtCore.QObject):
         self.frequency = frequency
         self.monitor_width = monitor_width
         self.monitor_height = monitor_height
+
+        # wiimote ir camera resolution
+
         self.width = 1024
         self.height = 768
 
@@ -76,8 +79,6 @@ class Wiimote(QtCore.QObject):
                                             'Right', 'Home', 'Minus',
                                             'Plus', 'One', 'Two'], False)
 
-        self.notification = 'Wiimote Init'
-
     def connect(self, address):
         try:
             self.wm = wm.connect(address)
@@ -90,7 +91,6 @@ class Wiimote(QtCore.QObject):
 
     def __update_loop_(self):
         if self.wm is None:
-                # print('No Wiimote Connected')
             pass
         else:
             x, y, z = self.wm.accelerometer
@@ -134,8 +134,6 @@ class Wiimote(QtCore.QObject):
             self.__allow_button_press_once_('Two', self.two_button_clicked)
             self.__allow_button_press_once_('Home', self.home_button_clicked)
 
-            # add more buttons as seen fit
-
     def __allow_button_press_once_(self, btn, trigger):
         if self.wm.buttons[btn] and not self.button_states[btn]:
             self.button_states[btn] = True
@@ -158,6 +156,9 @@ class Wiimote(QtCore.QObject):
 
         points = []
         [points.append([io['x'], io['y']]) for io in ir_data]
+
+        # the ir sensor likes to initialize with 1023 for all coordinates
+        # so we catch that case here
 
         if self.is_ir_initial:
             self.is_ir_initial = pl.all(pl.array(points) == 1023)

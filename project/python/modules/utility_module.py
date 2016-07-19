@@ -108,7 +108,7 @@ class FileDialog(QtWidgets.QFileDialog):
 
     @staticmethod
     def save_json_to_file(scene_json):
-        file_name, filter = FileDialog.getSaveFileName()
+        file_name, filter_ = FileDialog.getSaveFileName()
 
         if file_name != '':
             file = open(file_name, 'w')
@@ -117,7 +117,7 @@ class FileDialog(QtWidgets.QFileDialog):
 
     @staticmethod
     def load_json_from_file():
-        file_name, filter = FileDialog.getOpenFileName()
+        file_name, filter_ = FileDialog.getOpenFileName()
 
         if file_name != '':
             file = open(file_name, 'r')
@@ -127,7 +127,6 @@ class FileDialog(QtWidgets.QFileDialog):
             return scene_json
         else:
             return ''
-
 
 
 def moving_average(data, num_samples):

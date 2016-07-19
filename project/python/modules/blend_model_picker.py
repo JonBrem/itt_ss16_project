@@ -32,14 +32,16 @@ class HorizontalSelectionTable(QtWidgets.QTableWidget):
         if self.create_from_center:
             self.move(self.pos().x() - (TABLE_ITEM_SIZE / 2.0), self.pos().y())
 
-        while self.mapToGlobal(QtCore.QPoint(self.pos().x(), 0)).x() < TABLE_ITEM_SIZE:
+        while self.mapToGlobal(QtCore.QPoint(self.pos().x(), 0)).x() < \
+                TABLE_ITEM_SIZE:
             self.move(self.pos().x() + 10, self.pos().y())
 
         return new_item
 
     def set_create_from_center(self, create_from_center):
         """ If create_from_center is true, the addition of an item
-            will cause the table's x position to move to the left by half the item's width.
+            will cause the table's x position to move to the left by half the
+            item's width.
         """
         self.create_from_center = create_from_center
 
@@ -87,7 +89,8 @@ class ExpandableSelectionTable(HorizontalSelectionTable):
         if self.child_type == "Mesh":
             self.child_table = MeshPickerTable(self.item_creator, self.parent())
         else:
-            self.child_table = TexturePickerTable(self.item_creator, self.parent())
+            self.child_table = TexturePickerTable(self.item_creator,
+                                                  self.parent())
 
         # TODO refactor formula
         self.child_table.setGeometry(self.pos().x() + self.width() / 2 +

@@ -3,8 +3,7 @@ from python.modules import utility_module as um
 UNDO_LENGTH = 15
 
 
-class UndoUtility():
-
+class UndoUtility:
     def __init__(self, max_steps=UNDO_LENGTH):
         self.action_history_ring = um.RingArray(max_steps)
         self.max_steps = max_steps
@@ -76,14 +75,15 @@ class UndoUtility():
 
     def current_state(self, after_undo=True):
         """ Returns the state before "undo" or "redo" is applied.
-            Must be called immediately _after_ one of these methods (undo / redo);
-            else it might return the wrong state.
+            Must be called immediately _after_ one of these methods
+            (undo / redo); else it might return the wrong state.
         """
         if len(self.action_history_ring) == 0:
             return None
         if after_undo:
             if self.current_index == len(self.action_history_ring) - 2:
-                return {"state": self.first_state_at_undo, "action": "not identified"}
+                return {"state": self.first_state_at_undo,
+                        "action": "not identified"}
             else:
                 return self.action_history_ring[self.current_index + 2]
         else:

@@ -3,7 +3,7 @@
 from PyQt5 import uic, QtGui, QtCore, Qt
 from PyQt5.QtCore import QFile, QIODevice, Qt, QTextStream, QUrl
 from PyQt5.QtWidgets import (QAction, QApplication, QLineEdit, QMainWindow,
-        QSizePolicy, QStyle, QTextEdit)
+                             QSizePolicy, QStyle, QTextEdit)
 from PyQt5.QtNetwork import QNetworkProxyFactory, QNetworkRequest
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 
@@ -27,25 +27,25 @@ class SetupScene:
         SetupScene.webview.addToJavaScriptWindowObject(name, parent)
 
     @staticmethod
-    def translate_mesh_by_id(id, x, y, z):
+    def translate_mesh_by_id(id_, x, y, z):
         SetupScene.webview.evaluateJavaScript(
-            "translateMeshByID('" + id + "', " +
+            "translateMeshByID('" + id_ + "', " +
             str(x) + ", " + str(y) + ", " + str(z) + " );")
 
     @staticmethod
-    def rotate_mesh_by_id(id, angle_x, angle_y, angle_z):
+    def rotate_mesh_by_id(id_, angle_x, angle_y, angle_z):
         SetupScene.webview.evaluateJavaScript(
-            "rotateMeshByID('" + id + "', " +
+            "rotateMeshByID('" + id_ + "', " +
             str(angle_x) + ", " + str(angle_y) + ", " + str(angle_z) + " );")
 
     @staticmethod
-    def scale_mesh_by_id(id, factor_x, factor_y, factor_z, keep_y_bottom=True):
+    def scale_mesh_by_id(id_, factor_x, factor_y, factor_z, keep_y_bottom=True):
         method = "scaleMeshByID"
         if not keep_y_bottom:
             method = "scaleMeshByIDBasic"
 
         SetupScene.webview.evaluateJavaScript(
-            method + "('" + id + "', " +
+            method + "('" + id_ + "', " +
             str(factor_x) + ", " + str(factor_y) + ", " +
             str(factor_z) + " );")
 
@@ -84,7 +84,8 @@ class SetupScene:
 
     @staticmethod
     def save_state(identifier="no identifier"):
-        SetupScene.webview.evaluateJavaScript("saveScene('" + identifier + "');")
+        SetupScene.webview.evaluateJavaScript(
+            "saveScene('" + identifier + "');")
 
     @staticmethod
     def remove_mesh(mesh_id):
@@ -116,7 +117,8 @@ class SetupScene:
     def set_texture(type_, texture_name, texture_data, file_name):
         SetupScene.webview.evaluateJavaScript(
             "setTextureData('" + type_ + "'," +
-            "'" + texture_name + "',\"" + texture_data + "\",'" + file_name + "');")
+            "'" + texture_name + "',\"" +
+            texture_data + "\",'" + file_name + "');")
 
     @staticmethod
     def remove_texture(type_):
@@ -125,7 +127,8 @@ class SetupScene:
 
     @staticmethod
     def redo_scene(x, y):
-        SetupScene.webview.evaluateJavaScript("redoScene('" + str(x) + "', '" + str(y) + "')")
+        SetupScene.webview.evaluateJavaScript("redoScene('" + str(x) + "', '" +
+                                              str(y) + "')")
 
 
 def deserialize_list(js_list_as_string):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-
+from enum import Enum
 from PyQt5 import uic, QtGui, QtCore, Qt, QtWidgets
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtWidgets import (QApplication, QMainWindow)
@@ -24,18 +24,39 @@ class Window(QMainWindow):
         self.progress = 0
         self.app = app
 
-        screenDimens = self.app.desktop().screenGeometry()
+        self.UI_FILE_PATH = 'ui/room_design.ui'
+        self.CALLBACK = 'python_callback'
+        self.MODELS_INFO = 'assets/models_info.json'
+        self.TEXTURES_INFO = 'assets/textures_info.json'
+        self.WIIMOTE_FREQUENCY = 50
+        self.DEFAULT_SCALE = 1.0
+        self.DEFAULT_ROTATION = 0.0
+        self.PLANE_XZ = 'xz'
+        self.PLANE_XY = 'xy'
+        self.PLANE_YZ = 'yz'
+
+        self.WIN_X = 30
+        self.WIN_Y = 60
+        self.WIN_WIDTH = 1000
+        self.WIN_HEIGHT = 650
+
+        self.WIIMOTE_DEFAULT_ACCEL_SENSOR_VALUE = 512
+        self.WIIMOTE_MIN_ACCEL_SENSOR_VALUE = 407
+        self.WIIMOTE_MAX_ACCEL_SENSOR_VALUE = 610
+        self.WIIMOTE_SENSITIVITY = 10000
+
+        screen_dimens = self.app.desktop().screenGeometry()
         self.url = url
-        self.monitor_width = screenDimens.width()
-        self.monitor_height = screenDimens.height()
+        self.monitor_width = screen_dimens.width()
+        self.monitor_height = screen_dimens.height()
 
         QNetworkProxyFactory.setUseSystemConfiguration(True)
 
-        self.win = uic.loadUi('ui/room_design.ui')
+        self.win = uic.loadUi(self.UI_FILE_PATH)
         self.wv = QWebView(self.win)
 
         js.SetupScene.init(self.wv)
-        js.SetupScene.apply_callback('python_callback', self)
+        js.SetupScene.apply_callback(self.CALLBACK, self)
 
         self.wv.load(self.url)
 
@@ -62,18 +83,19 @@ class Window(QMainWindow):
 
         self.initial_accelerometer_data = None
 
-        self.wiimote = wii.Wiimote(50, self.monitor_width, self.monitor_height)
+        self.wiimote = wii.Wiimote(self.WIIMOTE_FREQUENCY, self.monitor_width,
+                                   self.monitor_height)
         self.dpad_button_states = {}
         self.setup_wiimote()
 
-        self.last_angle_y_rotation = 0.0
-        self.last_scale_factor = 1.0
+        self.last_angle_y_rotation = self.DEFAULT_ROTATION
+        self.last_scale_factor = self.DEFAULT_SCALE
 
         self.win.show()
 
         self.undo_utility = undo.UndoUtility()
 
-        self.selected_plane = "xz"
+        self.selected_plane = self.PLANE_XZ
         self.select_plane(self.selected_plane)
 
     # WIIMOTE BINDINGS & METHODS
@@ -120,9 +142,6 @@ class Window(QMainWindow):
 
     def on_wm_ir_data_update(self, data):
         x, y = data
-
-        #  print('ir lights found')
-
         self.set_cursor_position(x, y, True)
 
     def on_wm_a_button_press(self, data):
@@ -181,9 +200,7 @@ class Window(QMainWindow):
             self.last_scale_factor = self.mesh_scale[0]
 
             if self.mesh_scale[0] < 0.1:
-                js.SetupScene.scale_mesh_by_id(self.selected_mesh,
-                                               0.1,
-                                               0.1,
+                js.SetupScene.scale_mesh_by_id(self.selected_mesh, 0.1, 0.1,
                                                0.1)
 
                 self.last_scale_factor = 0.1
@@ -198,8 +215,8 @@ class Window(QMainWindow):
     # UI SETUP
 
     def setup_ui(self):
-        # magic numbers = coordinates (the app is not responsive anyway)
-        self.wv.setGeometry(30, 60, 1000, 650)
+        self.wv.setGeometry(self.WIN_X, self.WIN_Y, self.WIN_WIDTH,
+                            self.WIN_HEIGHT)
         self.wv.installEventFilter(self)
         self.win.installEventFilter(self)
 
@@ -210,13 +227,19 @@ class Window(QMainWindow):
 
         self.win.explain_controls_btn.clicked.connect(self.explain_controls)
 
-        self.win.x_y_plane_btn.clicked.connect(lambda: self.select_plane("xy"))
-        self.win.x_z_plane_btn.clicked.connect(lambda: self.select_plane("xz"))
-        self.win.y_z_plane_btn.clicked.connect(lambda: self.select_plane("yz"))
+        self.win.x_y_plane_btn.clicked.connect(
+            lambda: self.select_plane(self.PLANE_XY))
+        self.win.x_z_plane_btn.clicked.connect(
+            lambda: self.select_plane(self.PLANE_XZ))
+        self.win.y_z_plane_btn.clicked.connect(
+            lambda: self.select_plane(self.PLANE_YZ))
 
-        self.win.x_y_plane_cam_btn.clicked.connect(lambda: self.target_cam_to_plane('xy'))
-        self.win.x_z_plane_cam_btn.clicked.connect(lambda: self.target_cam_to_plane('xz'))
-        self.win.y_z_plane_cam_btn.clicked.connect(lambda: self.target_cam_to_plane('yz'))
+        self.win.x_y_plane_cam_btn.clicked.connect(
+            lambda: self.target_cam_to_plane(self.PLANE_XY))
+        self.win.x_z_plane_cam_btn.clicked.connect(
+            lambda: self.target_cam_to_plane(self.PLANE_XZ))
+        self.win.y_z_plane_cam_btn.clicked.connect(
+            lambda: self.target_cam_to_plane(self.PLANE_YZ))
 
         self.win.btn_new.clicked.connect(self.on_new_action)
         self.win.btn_save.clicked.connect(self.on_save_action)
@@ -229,25 +252,28 @@ class Window(QMainWindow):
         """
         # magic numbers = coordinates (the app is not responsive anyway)
 
+        # TODO: give magic numbers at least names locally or as member variable
+
         # mesh_select_table (for the models)
         self.mesh_select_table = model_table.ExpandableSelectionTable(
-            self, "Mesh", self.win)
+            self, 'Mesh', self.win)
         self.mesh_select_table.set_create_from_center(False)
         self.mesh_select_table.move(
             250, 665 + model_table.TABLE_ITEM_SIZE)
         self.mesh_select_table.itemSelectionChanged.connect(
             lambda: self.table_selection_changed(self.mesh_select_table))
-        self.read_selection_table_data("assets/models_info.json", self.mesh_select_table)
+        self.read_selection_table_data(self.MODELS_INFO,
+                                       self.mesh_select_table)
 
         # texture_select_table (ground, wall textures)
         self.texture_select_table = model_table.ExpandableSelectionTable(
-            self, "Texture", self.win)
+            self, 'Texture', self.win)
         self.texture_select_table.set_create_from_center(False)
         self.texture_select_table.move(
             50, 665 + model_table.TABLE_ITEM_SIZE)
         self.texture_select_table.itemSelectionChanged.connect(
             lambda: self.table_selection_changed(self.texture_select_table))
-        self.read_selection_table_data("assets/textures_info.json",
+        self.read_selection_table_data(self.TEXTURES_INFO,
                                        self.texture_select_table)
 
     def table_selection_changed(self, table):
@@ -298,7 +324,8 @@ class Window(QMainWindow):
     def js_mesh_load_error(self, mesh_name, error):
         print(mesh_name, error)
 
-    def request_change_texture(self, file_name, name, type_, create_undo_point=True):
+    def request_change_texture(self, file_name, name, type_,
+                               create_undo_point=True):
         if create_undo_point:
             js.SetupScene.save_state("change_texture")
 
@@ -313,9 +340,9 @@ class Window(QMainWindow):
     def select_plane(self, which):
         self.selected_plane = which
 
-        data = {"xy": [False, True, True],
-                "xz": [True, False, True],
-                "yz": [True, True, False], }
+        data = {self.PLANE_XY: [False, True, True],
+                self.PLANE_XZ: [True, False, True],
+                self.PLANE_YZ: [True, True, False], }
 
         self.win.x_y_plane_btn.setEnabled(data[which][0])
         self.win.x_z_plane_btn.setEnabled(data[which][1])
@@ -333,30 +360,34 @@ class Window(QMainWindow):
     def handle_mesh_scaling_fine(self, data):
         # Magic Numbers: WiiMote Sensor Values
         # 10000 = "sensitivity" (smaller = bigger changes)
-        scale_step = (512 - 407) / 10000
+        scale_step = (self.WIIMOTE_DEFAULT_ACCEL_SENSOR_VALUE -
+                      self.WIIMOTE_MIN_ACCEL_SENSOR_VALUE) / \
+                     self.WIIMOTE_SENSITIVITY
 
         scale = ((self.initial_accelerometer_data[1]-data[1]) * scale_step)
 
-        if data[2] > 511:
+        if data[2] > self.WIIMOTE_DEFAULT_ACCEL_SENSOR_VALUE - 1:
             js.SetupScene.scale_mesh_by_id(self.selected_mesh,
                                            scale + self.last_scale_factor,
                                            scale + self.last_scale_factor,
                                            scale + self.last_scale_factor)
 
     def handle_mesh_rotation_y(self, data):
-        # Magic Numbers: WiiMote Sensor Values / Angles
-        angle_step = (512 - 407) / 90 * np.pi / 180
+        right_angle = 90
+        angle_step_smoothing = 1.3
+        sensor_data_smoothing = 6
 
-        angle = (self.initial_accelerometer_data[0]-data[0]) * angle_step/1.3
+        angle_step = (self.WIIMOTE_DEFAULT_ACCEL_SENSOR_VALUE -
+                      self.WIIMOTE_MIN_ACCEL_SENSOR_VALUE) / \
+            right_angle * np.pi / (right_angle * 2)
 
-        if data[2] > 506:
+        angle = (self.initial_accelerometer_data[0]-data[0]) * angle_step / \
+            angle_step_smoothing
+
+        if data[2] > self.WIIMOTE_DEFAULT_ACCEL_SENSOR_VALUE - \
+                sensor_data_smoothing:
             js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, angle +
                                             self.last_angle_y_rotation, 0)
-        '''
-        elif data[2] < 507:
-            js.SetupScene.rotate_mesh_by_id(self.selected_mesh, 0, (angle +
-                                            self.last_angle_y_rotation) * -1, 0)
-        '''
 
     @QtCore.pyqtSlot(str, str, str)
     def on_translation_rotation_scale_request(self, trans, rot, scale):
@@ -415,7 +446,8 @@ class Window(QMainWindow):
 
     def select_mesh(self, obj_id, update_list=True, from_click=False):
         was_selected = self.selected_mesh == obj_id
-        # = short for "the item that was selected was the item that was already selected"
+        # = short for "the item that was selected was the item that was already
+        # selected"
 
         self.selected_mesh = obj_id
         for mesh in self.meshes:
@@ -520,8 +552,8 @@ class Window(QMainWindow):
                                   QtCore.Qt.NoModifier)
         self.app.postEvent(clicked_child, event)
 
-    def simulate_camera_event(self, type, key):
-        event = QtGui.QKeyEvent(type, key, QtCore.Qt.NoModifier)
+    def simulate_camera_event(self, type_, key):
+        event = QtGui.QKeyEvent(type_, key, QtCore.Qt.NoModifier)
 
         self.app.postEvent(self.wv, event)
 
@@ -561,8 +593,8 @@ class Window(QMainWindow):
             self.undo_utility.add_action(identifier, scene_json)
 
     def load_state(self, scene_json):
-        """ Load the state in scene_json (JSON String) while completely discarding
-            the current state. Cannot be undone.
+        """ Load the state in scene_json (JSON String) while completely
+            discarding the current state. Cannot be undone.
         """
         self.clear_all()
         as_data = json.loads(scene_json)
@@ -582,9 +614,10 @@ class Window(QMainWindow):
         self.load_floor_and_walls(as_data)
 
     def load_changed_state(self, current_state, next_state):
-        """ Loads the "next_state" (JSON Object / dicts and lists) from the current state.
-            Is faster than load_state & can be undone; use this method for "undo" and "redo"
-            (when there are likely to be few changes between the states & undo must be possible).
+        """ Loads the "next_state" (JSON Object / dicts and lists) from the
+            current state. Is faster than load_state & can be undone; use this
+            method for "undo" and "redo" (when there are likely to be few
+            changes between the states & undo must be possible).
         """
 
         # delete meshes if they are not in the next state
@@ -597,7 +630,8 @@ class Window(QMainWindow):
             if not found_mesh:
                 self.delete_mesh(mesh["id"])
 
-        # transform meshes for the next state / create them, if they don't exist yet
+        # transform meshes for the next state / create them, if they don't
+        # exist yet
         for mesh in next_state["meshes"]:
             found_mesh = False
             for previous_state in current_state["meshes"]:
@@ -627,9 +661,10 @@ class Window(QMainWindow):
     def load_floor_and_walls(self, next_state):
         for texture_type in ("walls", "floor"):
             if texture_type in next_state:
-                self.request_change_texture(next_state[texture_type]["fileName"],
-                                            next_state[texture_type]["textureName"],
-                                            next_state[texture_type]["type"], False)
+                self.request_change_texture(
+                    next_state[texture_type]["fileName"],
+                    next_state[texture_type]["textureName"],
+                    next_state[texture_type]["type"], False)
             else:
                 if texture_type == "floor":
                     js.SetupScene.remove_texture("carpet")
@@ -641,10 +676,12 @@ class Window(QMainWindow):
         pos_data_old = previous_state["pos"]
         js.SetupScene.translate_mesh_by_id(
             mesh["id"], pos_data_new[0] - pos_data_old[0],
-            pos_data_new[1] - pos_data_old[1], pos_data_new[2] - pos_data_old[2])
+            pos_data_new[1] - pos_data_old[1],
+            pos_data_new[2] - pos_data_old[2])
 
         rot_data = mesh["rot"]
-        js.SetupScene.rotate_mesh_by_id(mesh["id"], rot_data[0], rot_data[1], rot_data[2])
+        js.SetupScene.rotate_mesh_by_id(mesh["id"], rot_data[0], rot_data[1],
+                                        rot_data[2])
 
         scale_data = mesh["scale"]
         js.SetupScene.scale_mesh_by_id(
@@ -685,7 +722,8 @@ class Window(QMainWindow):
         msg_box = QtWidgets.QMessageBox()
         pixmap = QtGui.QPixmap()
         pixmap.load("assets/img/wiimote_explain.png")
-        pixmap = pixmap.scaled(534, 801)  # some 2:3 ratio that fits on most screens...
+        # some 2:3 ratio that fits on most screens...
+        pixmap = pixmap.scaled(534, 801)
         msg_box.setWindowTitle("WiiMote Controls - Info")
         msg_box.setIconPixmap(pixmap)
         msg_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
@@ -700,7 +738,7 @@ class Window(QMainWindow):
             self.mesh_select_table.lose_focus()
             self.texture_select_table.lose_focus()
         elif event.type() == QtGui.QKeyEvent.KeyRelease:
-            if event.key() == 75:  # clic[k]; so it can be tested without the WiiMote
+            if event.key() == 75:
                 self.simulate_click()
             # z (undo if with ctrl)
             elif (source == self.win and event.key() == 90 and
