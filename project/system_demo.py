@@ -1,6 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 import os
+import sys
 from enum import Enum
 from PyQt5 import uic, QtGui, QtCore, Qt, QtWidgets
 from PyQt5.QtCore import QUrl, Qt
@@ -244,6 +245,9 @@ class Window(QMainWindow):
         self.win.btn_new.clicked.connect(self.on_new_action)
         self.win.btn_save.clicked.connect(self.on_save_action)
         self.win.btn_load.clicked.connect(self.on_load_action)
+
+    def set_bt_address(self, address):
+        self.win.line_edit_address.setText(address)
 
     # SELECTION TABLES
 
@@ -760,6 +764,9 @@ def main():
                '/html/index.html')
 
     win = Window(url, app)
+
+    if len(sys.argv) > 1:
+        win.set_bt_address(sys.argv[1])
 
     sys.exit(app.exec_())
 
