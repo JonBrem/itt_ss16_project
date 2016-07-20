@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
 import os
-import sys
-from enum import Enum
 from PyQt5 import uic, QtGui, QtCore, Qt, QtWidgets
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtWidgets import (QApplication, QMainWindow)
@@ -45,6 +43,10 @@ class Window(QMainWindow):
         self.WIIMOTE_MIN_ACCEL_SENSOR_VALUE = 407
         self.WIIMOTE_MAX_ACCEL_SENSOR_VALUE = 610
         self.WIIMOTE_SENSITIVITY = 10000
+
+        self.MESH_SELECT_TABLE_X_LEFT = 250
+        self.TEXTURE_SELECT_TABLE_X_LEFT = 50
+        self.SELECT_TABLES_Y = 665
 
         screen_dimens = self.app.desktop().screenGeometry()
         self.url = url
@@ -256,14 +258,13 @@ class Window(QMainWindow):
         """
         # magic numbers = coordinates (the app is not responsive anyway)
 
-        # TODO: give magic numbers at least names locally or as member variable
-
         # mesh_select_table (for the models)
         self.mesh_select_table = model_table.ExpandableSelectionTable(
             self, 'Mesh', self.win)
         self.mesh_select_table.set_create_from_center(False)
         self.mesh_select_table.move(
-            250, 665 + model_table.TABLE_ITEM_SIZE)
+            self.MESH_SELECT_TABLE_X_LEFT,
+            self.SELECT_TABLES_Y + model_table.TABLE_ITEM_SIZE)
         self.mesh_select_table.itemSelectionChanged.connect(
             lambda: self.table_selection_changed(self.mesh_select_table))
         self.read_selection_table_data(self.MODELS_INFO,
@@ -274,7 +275,8 @@ class Window(QMainWindow):
             self, 'Texture', self.win)
         self.texture_select_table.set_create_from_center(False)
         self.texture_select_table.move(
-            50, 665 + model_table.TABLE_ITEM_SIZE)
+            self.TEXTURE_SELECT_TABLE_X_LEFT,
+            self.SELECT_TABLES_Y + model_table.TABLE_ITEM_SIZE)
         self.texture_select_table.itemSelectionChanged.connect(
             lambda: self.table_selection_changed(self.texture_select_table))
         self.read_selection_table_data(self.TEXTURES_INFO,
@@ -295,6 +297,10 @@ class Window(QMainWindow):
             other_table.lose_focus()
 
     def read_selection_table_data(self, file_path, selection_table):
+        """ Reads the data from the file (e.g. assets/models_info.json)
+            and sets up the seletion_table, i.e., tells it what categories
+            there are & what icons and subitems they have.
+        """
         with open(file_path, 'r') as data_file:
             data = json.loads(data_file.read())
             for category in data['categories']:
@@ -304,6 +310,14 @@ class Window(QMainWindow):
 
     def request_add_mesh(self, mesh_file_name, type_, name=None,
                          transform="null", from_load=False):
+        """ Tells the JS component to add a mesh (scene object).
+
+            name: might be overwritten if it is already in use
+            transform: location, rotation and scale (default="null" = at the
+                       center of the scene, scale = 1 & rotation = 0, 0, 0)
+            from_load: when this method is called to load another state (True),
+                       no new "undo state" will be created. Default=False
+        """
         if not from_load:
             js.SetupScene.save_state("add_mesh")
 
@@ -320,12 +334,15 @@ class Window(QMainWindow):
 
     @QtCore.pyqtSlot(str)
     def js_mesh_loaded(self, mesh_name):
+        """ Gets called when the JS component successfully created an object.
+        """
         self.list_widget.addItem(mesh_name)
         self.meshes.append(mesh_name)
         self.select_mesh(mesh_name)
 
     @QtCore.pyqtSlot(str, str)
     def js_mesh_load_error(self, mesh_name, error):
+        """ Gets called when the JS component failed to create an object. """
         print(mesh_name, error)
 
     def request_change_texture(self, file_name, name, type_,
@@ -362,8 +379,6 @@ class Window(QMainWindow):
         js.SetupScene.duplicate_mesh(mesh_id, name)
 
     def handle_mesh_scaling_fine(self, data):
-        # Magic Numbers: WiiMote Sensor Values
-        # 10000 = "sensitivity" (smaller = bigger changes)
         scale_step = (self.WIIMOTE_DEFAULT_ACCEL_SENSOR_VALUE -
                       self.WIIMOTE_MIN_ACCEL_SENSOR_VALUE) / \
                      self.WIIMOTE_SENSITIVITY
@@ -419,6 +434,7 @@ class Window(QMainWindow):
     # DELETING / RESETTING
 
     def clear_all(self):
+        """ Resets the entire scene & the undo utility. """
         while self.list_widget.count() > 0:
             self.list_widget.takeItem(0)
 
@@ -442,6 +458,9 @@ class Window(QMainWindow):
     # MESH SELECTION
 
     def mesh_selection_changed(self, b=0):
+        """ Callback for when the selection in the list of scene objects
+            changes.
+        """
         selected = self.list_widget.selectedIndexes()
         if len(selected) > 0:
             self.select_mesh(self.meshes[selected[0].row()], False)
@@ -449,6 +468,12 @@ class Window(QMainWindow):
             self.de_select_meshes(False)
 
     def select_mesh(self, obj_id, update_list=True, from_click=False):
+        """ Sets the mesh as selected in the scene (gives it an outine)
+            & in the list of objects.
+
+            update_list: if the selection change came from the list widget,
+                         it should not be updated redundantly (=False)
+        """
         was_selected = self.selected_mesh == obj_id
         # = short for "the item that was selected was the item that was already
         # selected"
@@ -475,7 +500,6 @@ class Window(QMainWindow):
         js.SetupScene.highlight_mesh(obj_id, from_click)
 
     def de_select_meshes(self, from_js=True):
-        # @todo: do we ever need that param??
         if from_js:
             selection_model = self.list_widget.selectionModel()
             selection_model.clear()
@@ -581,6 +605,14 @@ class Window(QMainWindow):
 
     @QtCore.pyqtSlot(str, str)
     def save_state_result(self, scene_json, identifier):
+        """ Callback for when JS successfully saved the scene.
+
+            identifier: same string that was given to the JS component
+                        to mark why the state was saved. E.g., if it is
+                        "undo", that means it was created to be able to
+                        redo the scene & it should not be added to the
+                        undo list.
+        """
         scene_obj = json.loads(scene_json)
 
         scene_obj["selection"] = self.selected_mesh if \

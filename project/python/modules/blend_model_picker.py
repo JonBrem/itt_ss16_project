@@ -5,6 +5,14 @@ TABLE_ITEM_SIZE = 76
 
 
 class HorizontalSelectionTable(QtWidgets.QTableWidget):
+    """ Main class for the selection bars for the Mesh and
+        Texture selection bars in the system.
+        Both the "category" bars and the bars for the individual items
+        extend this class.
+
+        On a technical level, they are tables (with 1 row), hence
+        the name of this class.
+    """
 
     def __init__(self, parent=None):
         super(HorizontalSelectionTable, self).__init__(parent)
@@ -47,6 +55,11 @@ class HorizontalSelectionTable(QtWidgets.QTableWidget):
 
 
 class ExpandableSelectionTable(HorizontalSelectionTable):
+    """ The "category selection" bars for the Textures and Meshes
+        available in the application.
+        When one of its items is clicked, another bar (a ChildSelectionTable)
+        pops up, centered over the item that was clicked.
+    """
 
     def __init__(self, item_creator, child_type="Mesh", parent=None):
         super(ExpandableSelectionTable, self).__init__(parent)
@@ -92,12 +105,11 @@ class ExpandableSelectionTable(HorizontalSelectionTable):
             self.child_table = TexturePickerTable(self.item_creator,
                                                   self.parent())
 
-        # TODO refactor formula
-        self.child_table.setGeometry(self.pos().x() + self.width() / 2 +
-                                     (index - (len(self.category_data) - 1) /
-                                     2) * TABLE_ITEM_SIZE,
-                                     self.pos().y() - TABLE_ITEM_SIZE, 0,
-                                     TABLE_ITEM_SIZE)
+        # center the child table just above the clicked item of this table.
+        self.child_table.setGeometry(
+            (self.pos().x() + self.width() / 2 +
+                (index - (len(self.category_data) - 1) / 2) * TABLE_ITEM_SIZE),
+            self.pos().y() - TABLE_ITEM_SIZE, 0, TABLE_ITEM_SIZE)
         for mesh in category_data["models"]:
             self.child_table.add_item(mesh)
 
@@ -129,6 +141,9 @@ class ExpandableSelectionTable(HorizontalSelectionTable):
 
 
 class ChildSelectionTable(HorizontalSelectionTable):
+    """ The "item selection" bars that pop up when an item in the
+        category selection bars is clicked.
+    """
 
     def __init__(self, parent=None):
         super(ChildSelectionTable, self).__init__(parent)
@@ -148,6 +163,9 @@ class ChildSelectionTable(HorizontalSelectionTable):
 
 
 class MeshPickerTable(ChildSelectionTable):
+    """ The item selection bar for the meshes.
+        A click on an item will add an obect to the scene.
+    """
 
     def __init__(self, mesh_creator, parent=None):
         super(MeshPickerTable, self).__init__(parent)
@@ -167,6 +185,9 @@ class MeshPickerTable(ChildSelectionTable):
 
 
 class TexturePickerTable(ChildSelectionTable):
+    """ The item selection bar for the textures.
+        A click on an item will change the wall or floor texture.
+    """
 
     def __init__(self, texture_creator, parent=None):
         super(TexturePickerTable, self).__init__(parent)
@@ -186,6 +207,12 @@ class TexturePickerTable(ChildSelectionTable):
 
 
 class SelectionTableItem(QtWidgets.QWidget):
+    """ Class for the items in the selection bars.
+        The items contain a name and an icon.
+
+        The tables store the corresponding mesh or texture,
+        this class is only for the UI of the table item.
+    """
 
     def __init__(self, name, icon):
         super(SelectionTableItem, self).__init__()
@@ -225,6 +252,7 @@ class SelectionTableItem(QtWidgets.QWidget):
         name_label.setAlignment(QtCore.Qt.AlignCenter)
         layout.addWidget(name_label)
 
+        # This wrapper is necessary for the hover effect.
         wrapper = QtWidgets.QWidget()
         # any name and value, just so it can be referenced:
         wrapper.setProperty("selectionStyleClass", "wrapper")
